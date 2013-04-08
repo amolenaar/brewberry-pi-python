@@ -17,16 +17,19 @@ temperature.consumers.add(temperature_consumer)
 class TemperatureHandler(tornado.web.RequestHandler):
     def get(self):
         if most_recent_temperature:
-            self.write(json_encode({
+            self.write({
                 'temperature': most_recent_temperature[0],
                 'timestamp': most_recent_temperature[1]
-            }))
+            })
         else:
             self.set_status(204) # No data
-            self.write(json_encode({'error': 'No temperature reading yet'}))
+            self.flush()
+
 
 application = tornado.web.Application([
-    (r"/", TemperatureHandler),
+    (r'/temperature', TemperatureHandler),
+    (r'/(..*)', tornado.web.StaticFileHandler, {'path': 'static'}),
+    (r'/$', tornado.web.RedirectHandler, {"url": "/index.html"})
     ])
 
 http_server = tornado.httpserver.HTTPServer(application)
