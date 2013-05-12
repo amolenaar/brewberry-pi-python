@@ -9,13 +9,15 @@
 
 from collections import namedtuple
 
+TEMPERATURE_DELTA = 0.05
+
 LogLine = namedtuple('LogLine', ['time', 'temperature', 'heater'])
 
 def log(io):
     return LogLine(io.read_time(), io.read_temperature(), io.read_heater())
 
 def different(log_line, last_log_line):
-    return abs(log_line.temperature - last_log_line.temperature) > 0.01 or \
+    return abs(log_line.temperature - last_log_line.temperature) >= TEMPERATURE_DELTA or \
            log_line.heater != last_log_line.heater
 
 class Logger(object):

@@ -9,14 +9,20 @@ Feature: Brew system logging
     Given a running system
     When a line is logged
     And a second line with the same state
-    Then only 1 line is logged
+    Then no new line is logged
 
-  Scenario: One line is logged if the temperature difference is < 0.05 degrees
+  Scenario Outline: A line is logged if the temperature difference is big enough
     Given a running system
     When a line is logged
-    And a second line with a temparature T plus 0.05 degrees
-    Then only 1 line is logged
+    And a second line with a temparature T plus <delta_t> degrees
+    Then <logged> new line is logged
 
-#  Examples:
-#    | delta_t | n_lines |
-#    | 0.0     | 
+  Examples:
+    | delta_t | logged |
+    |  0.5    | one    |
+    |  0.05   | one    |
+    |  0.0499 | no     |
+    |  0.00   | no     |
+    | -0.0499 | no     |
+    | -0.05   | one    |
+    | -0.5    | one    |

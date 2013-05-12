@@ -26,12 +26,16 @@ def a_second_line_with_the_same_state(step):
     fakeio.time = 1
     world.logger()
 
-@step(u'And a second line with a temparature T plus 0.05 degrees')
-def a_second_line_with_a_temparature_t_plus_d_degrees(step):
-    fakeio.tempearure = DEFAULT_TEMP + 0.05
+@step(u'And a second line with a temparature T plus (-?\d+\.\d+) degrees')
+def a_second_line_with_a_temparature_t_plus_d_degrees(step, delta_t):
+    fakeio.temperature = DEFAULT_TEMP + float(delta_t)
     world.logger()
 
-@step(u'Then only (\d) line is logged')
-def only_one_line_is_logged(step, n_lines):
-    assert len(world.logger.lines) == int(n_lines), world.logger.lines
+@step(u'Then (no|one) new line is logged')
+def no_one_new_line_is_logged(step, s):
+    if s == 'one':
+        assert len(world.logger.lines) == 2, world.logger.lines
+    else:
+        assert len(world.logger.lines) == 1, world.logger.lines
 
+# vim: sw=4:et:ai
