@@ -4,15 +4,7 @@ import tornado.httpserver
 from time import time
 from tornado.escape import json_encode
 
-import temperature
-
-most_recent_temperature = None
-
-def temperature_consumer(temperature):
-    global most_recent_temperature
-    most_recent_temperature = (temperature, time())
-
-temperature.consumers.add(temperature_consumer)
+most_recent_temperature = [0, 0]
 
 class TemperatureHandler(tornado.web.RequestHandler):
     def get(self):

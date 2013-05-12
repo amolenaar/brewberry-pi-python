@@ -15,7 +15,7 @@ def main():
     log = logger.Logger(raspio, logger.json_appender(sys.stdout))
     ioloop.PeriodicCallback(log, INTERVAL, mainloop).start()
 
-    webui.register(mainloop)
+#    webui.register(mainloop)
 
     mainloop.start()
 

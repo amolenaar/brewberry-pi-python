@@ -2,13 +2,13 @@
 # IO stuff, on the Raspberry Pi.
 #
 
-HEATING_PIN = 18
+HEATER_PIN = 18
 
 import os, glob, datetime, time
 
 import RPi.GPIO as io
 io.setmode(io.BCM)
-io.setup(HEATING_PIN, io.OUT)
+io.setup(HEATER_PIN, io.OUT)
 
 base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
@@ -31,7 +31,7 @@ def _read_temp():
         temp_c = float(temp_string) / 1000.0
         return temp_c
 
-_heating = Off
+_heater = Off
 
 ## Interface methods:
 
@@ -41,17 +41,17 @@ def read_time():
 def read_temperature():
     return _read_temp()
 
-def read_heating():
-    return _heating
+def read_heater():
+    return _heater
 
-def set_heating(v):
-    global _heating
-    io.output(HEATING_PIN, v)
-    _heating = v
+def set_heater(v):
+    global _heater
+    io.output(HEATER_PIN, v)
+    _heater = v
 
 
 def init():
-    set_heating(_heating)
+    set_heater(_heater)
 
 
 init()
