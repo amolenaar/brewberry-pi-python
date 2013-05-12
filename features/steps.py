@@ -9,7 +9,8 @@ def a_running_system(step):
     fakeio.time = 0
     fakeio.temperature = DEFAULT_TEMP
     fakeio.heater = Off
-    world.logger = logger.Logger(fakeio)
+    world.log_lines = []
+    world.logger = logger.Logger(fakeio, world.log_lines.append)
 
 @step(u'When a line is logged')
 def a_line_is_logged(step):
@@ -17,7 +18,7 @@ def a_line_is_logged(step):
 
 @step(u'Then it contains information about time, temperature and heater')
 def it_contains_information_about_temperature_temperature_heater_and_time(step):
-    assert world.log_line.time == 0, 'Time is %s' % world.log_line.time
+    assert str(world.log_line.time) == '1970-01-01 00:00:00', 'Time is %s' % world.log_line.time
     assert world.log_line.temperature == DEFAULT_TEMP, 'Temperature is %s' % world.log_line.temperature
     assert world.log_line.heater == Off, 'Heater is %s' % world.log_line.heater
 
@@ -38,8 +39,8 @@ def when_a_minute_expires(step):
 @step(u'Then (no|one) new line is logged')
 def no_one_new_line_is_logged(step, s):
     if s == 'one':
-        assert len(world.logger.lines) == 2, world.logger.lines
+        assert len(world.log_lines) == 2, world.logger.lines
     else:
-        assert len(world.logger.lines) == 1, world.logger.lines
+        assert len(world.log_lines) == 1, world.logger.lines
 
 # vim: sw=4:et:ai
