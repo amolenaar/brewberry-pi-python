@@ -26,3 +26,10 @@ Feature: Brew system logging
     | -0.0499 | no     |
     | -0.05   | one    |
     | -0.5    | one    |
+
+
+  Scenario: A line is logged at least once a minute
+    Given a running system
+    When a line is logged
+    And a minute expires
+    Then one new line is logged

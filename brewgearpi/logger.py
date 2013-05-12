@@ -10,6 +10,7 @@
 from collections import namedtuple
 
 TEMPERATURE_DELTA = 0.05
+TIME_DELTA = 60
 
 LogLine = namedtuple('LogLine', ['time', 'temperature', 'heater'])
 
@@ -17,7 +18,8 @@ def log(io):
     return LogLine(io.read_time(), io.read_temperature(), io.read_heater())
 
 def different(log_line, last_log_line):
-    return abs(log_line.temperature - last_log_line.temperature) >= TEMPERATURE_DELTA or \
+    return log_line.time - last_log_line.time >= TIME_DELTA or \
+           abs(log_line.temperature - last_log_line.temperature) >= TEMPERATURE_DELTA or \
            log_line.heater != last_log_line.heater
 
 class Logger(object):

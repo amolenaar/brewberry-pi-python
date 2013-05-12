@@ -23,12 +23,16 @@ def it_contains_information_about_temperature_temperature_heater_and_time(step):
 
 @step(u'And a second line with the same state')
 def a_second_line_with_the_same_state(step):
-    fakeio.time = 1
     world.logger()
 
 @step(u'And a second line with a temparature T plus (-?\d+\.\d+) degrees')
 def a_second_line_with_a_temparature_t_plus_d_degrees(step, delta_t):
     fakeio.temperature = DEFAULT_TEMP + float(delta_t)
+    world.logger()
+
+@step(u'And a minute expires')
+def when_a_minute_expires(step):
+    fakeio.time = fakeio.time + 60
     world.logger()
 
 @step(u'Then (no|one) new line is logged')
