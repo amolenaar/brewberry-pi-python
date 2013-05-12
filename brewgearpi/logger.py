@@ -10,7 +10,7 @@
 from collections import namedtuple
 import datetime
 
-TEMPERATURE_DELTA = 0.05
+TEMPERATURE_DELTA = 0.05 # degrees Celcius
 TIME_DELTA = datetime.timedelta(seconds=60)
 
 LogLine = namedtuple('LogLine', ['time', 'temperature', 'heater'])
