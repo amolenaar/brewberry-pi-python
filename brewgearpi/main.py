@@ -14,7 +14,7 @@ def main(io):
     log = logger.Logger(io, logger.json_appender(sys.stdout))
     ioloop.PeriodicCallback(log, INTERVAL, mainloop).start()
 
-    webui.setup(io, mainloop)
+    webui.setup(log, mainloop)
 
     mainloop.start()
 

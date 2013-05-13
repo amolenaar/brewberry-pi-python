@@ -3,17 +3,19 @@ import tornado.web
 import tornado.httpserver
 from time import time
 from tornado.escape import json_encode
+from logger import json_appender
 
-
-def setup(io, mainloop):
+def setup(logger, mainloop):
 
     class ReadingHandler(tornado.web.RequestHandler):
         def get(self):
-            self.write({
-                'time': io.read_time(),
-                'temperature': io.read_temperature(),
-                'heater': io.read_heater()
-            })
+            last = logger.last
+            if last:
+                self.write(last.as_json())
+            else:
+                self.set_status(204) # No data
+                self.flush()
+
 
     application = tornado.web.Application([
         (r'/reading', ReadingHandler),

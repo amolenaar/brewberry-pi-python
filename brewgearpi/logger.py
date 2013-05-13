@@ -15,6 +15,16 @@ TIME_DELTA = datetime.timedelta(seconds=60)
 
 LogLine = namedtuple('LogLine', ['time', 'temperature', 'heater'])
 
+def _log_line_as_json(self):
+    return {
+        'time': self.time.isoformat(),
+        'temperature': self.temperature,
+        'heater': self.heater
+    }
+
+LogLine.as_json = _log_line_as_json
+
+
 def log(io):
     return LogLine(io.read_time(), io.read_temperature(), io.read_heater())
 
@@ -41,11 +51,7 @@ import json
 
 def json_appender(file):
     def jsonifier(log_line):
-        json.dump({
-            'time': log_line.time.isoformat(),
-            'temperature': log_line.temperature,
-            'heater': log_line.heater
-        }, file)
+        json.dump(log_line.as_json(), file)
         file.write('\n')
     return jsonifier
 
