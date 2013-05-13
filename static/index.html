@@ -9,7 +9,7 @@
 
   <script type="text/javascript">
 $(function () {
-        $('#chart').highcharts({
+        var chart = $('#chart').highcharts({
             chart: {
                 zoomType: 'xy',
                 type: 'spline',
@@ -29,7 +29,16 @@ $(function () {
 				console.log(data);
 			    });
                         };
-			setTimeout(callback, 2000);
+			$.get('/readings/all', function (readings) {
+			    console.log('series', chart.series);
+			    $.each(readings, function (i, data) {
+				console.log(i, data);
+				var d = Date.parse(data.time);
+				temperature_series.addPoint([d, data.temperature], true, false);
+				heater_series.addPoint([d, data.heater], true, false);
+			    });
+			    setTimeout(callback, 2000);
+			});
                     }
                 }
             },
