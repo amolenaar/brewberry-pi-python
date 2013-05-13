@@ -5,7 +5,7 @@
 HEATER_PIN = 18
 
 import os, glob, datetime, time
-
+from memoize import memoize
 import RPi.GPIO as io
 io.setmode(io.BCM)
 io.setup(HEATER_PIN, io.OUT)
@@ -38,6 +38,7 @@ _heater = Off
 def read_time():
     return datetime.datetime.fromtimestamp(time.time())
 
+@memoize(timeout=2)
 def read_temperature():
     return _read_temp()
 
