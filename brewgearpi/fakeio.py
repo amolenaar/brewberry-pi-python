@@ -8,7 +8,11 @@ temperature = 0
 heater = Off
 
 def read_time():
-    return datetime.datetime.utcfromtimestamp(time)
+    global time
+    try:
+        return datetime.datetime.utcfromtimestamp(time)
+    finally:
+        time += 1
 
 def read_temperature():
     return temperature
