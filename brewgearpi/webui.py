@@ -34,6 +34,6 @@ def setup(logger, mainloop):
         ])
 
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(9080)
+    http_server.listen(9080, '0.0.0.0')
 
 # vim:sw=4:et:ai
