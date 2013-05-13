@@ -6,7 +6,7 @@ import webui
 
 from tornado import ioloop
 
-INTERVAL = 500     # ms
+INTERVAL = 5000     # ms
 
 def main(io):
     mainloop = ioloop.IOLoop.instance()
