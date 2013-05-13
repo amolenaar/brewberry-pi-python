@@ -44,7 +44,7 @@ class Logger(object):
         log_line = log(self._io)
         if different(log_line, self.last):
             self._appender(log_line)
-        self.last = log_line
+            self.last = log_line
         return log_line
 
 import json
@@ -53,6 +53,7 @@ def json_appender(file):
     def jsonifier(log_line):
         json.dump(log_line.as_json(), file)
         file.write('\n')
+        file.flush()
     return jsonifier
 
 # vim:sw=4:et:ai
