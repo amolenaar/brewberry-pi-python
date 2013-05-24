@@ -1,4 +1,36 @@
+Logger = function (callback) {
+    var client = null;
+    setInterval((function () {
+        var offset = 0;
+        return function () {
+            if (client == null || client.readyState === 4 || client.responseText.length > 4096) {
+                if (client) client.abort();
+                console.log('Set up new client', client);
+                client = new XMLHttpRequest();
+                client.open("GET", "logger", true);
+                client.onreadystatechange = function() {
+                    console.log('state:', this.readyState);
+                    if (this.readyState === 3) {
+                        var text = this.responseText;
+                        try {
+                            var sample = JSON.parse(text.substring(offset));
+                            console.log(sample);
+                            callback(sample);
+                        } catch (e) {
+                            console.log('parse error', e);
+                        }
+                        offset = text.length;
+                    }
+                }
+                client.send();
+                console.log('new client', client);
+            }
+        }
+    })(), 2000);
+};
+
 var HISTORY_DEPTH = 2 * 3600 * 1000; // 2 hours of history
+
 $(function () {
     var chart = $('#chart').highcharts({
         chart: {
@@ -20,50 +52,29 @@ $(function () {
                         }
                         self.redraw();
                     }
-                    var callback = function () {
-                        $.get("/reading", function (data, textStatus, jqXHR) {
-                            if (data !== last_reading) {
-                                var d = Date.parse(data.time);
-                                temperature_series.addPoint([d, data.temperature], true, false);
-                                heater_series.addPoint([d, data.heater], true, false);
-                                dropOldData(temperature_series, d);
-                                dropOldData(heater_series, d);
-
-                                last_reading = data;
-                            }
-                            setTimeout(callback, 2000);
-                            console.log(data);
-                        });
-                    };
-                    $.get('/readings/all', function (readings) {
-                        var temperature_data = [], heater_data = [];
-                        var oldest_date = readings ? Date.parse(readings[readings.length - 1].time) - HISTORY_DEPTH : undefined;
-                        $.each(readings, function (i, data) {
-                            console.log(i, data);
-                            var d = Date.parse(data.time);
-                            if (oldest_date && d > oldest_date) {
-                                temperature_data.push([d, data.temperature]);
-                                heater_data.push([d, data.heater]);
-                            }
-                        });
-                        temperature_series = self.addSeries({
-                            name: 'Temperature',
-                            color: '#89A54E',
-                            tooltip: {
-                                valueSuffix: ' °C'
-                            },
-                            data: temperature_data
-                        });
-                        heater_series = self.addSeries({
-                            name: 'Heater',
-                            color: '#4572A7',
-                            yAxis: 1,
-                            data: heater_data
-                        });
-                        setTimeout(callback, 2000);
+                    console.log
+                    Logger(function (sample) {
+                        var time = Date.parse(sample.time);
+                        temperature_series.addPoint([time, sample.temperature], true, false);
+                        heater_series.addPoint([time, sample.heater], true, false);
+                        dropOldData(temperature_series, time);
+                        dropOldData(heater_series, time);
+                    });
+                    temperature_series = self.addSeries({
+                        name: 'Temperature',
+                        color: '#89A54E',
+                        tooltip: {
+                            valueSuffix: ' °C'
+                        },
+                        data: []
+                    });
+                    heater_series = self.addSeries({
+                        name: 'Heater',
+                        color: '#4572A7',
+                        yAxis: 1,
+                        data: []
                     });
                 }
-                //*/
             }
         },
 
@@ -93,7 +104,6 @@ $(function () {
             }
         }, {
             gridLineWidth: 0,
-            type: 'area',
             title: {
                 text: 'Heater',
                 style: {
@@ -107,10 +117,10 @@ $(function () {
                 style: {
                     color: '#4572A7'
                 },
-                tickInterval: 1
             },
             min: 0,
             max: 1,
+            tickInterval: 1,
             opposite: true
         }],
         tooltip: {
@@ -118,7 +128,10 @@ $(function () {
         },
         plotOptions: {
             series: {
-                stacking: null
+                stacking: null,
+                marker: {
+                    enabled: false
+                }
             }
         }
             /*

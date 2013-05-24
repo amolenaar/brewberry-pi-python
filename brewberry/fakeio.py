@@ -4,6 +4,8 @@
 import datetime
 import math
 
+INTERVAL = 1000 # ms
+
 time = 0
 temperature = 0
 heater = Off
@@ -13,10 +15,10 @@ def read_time():
     try:
         return datetime.datetime.utcfromtimestamp(time)
     finally:
-        time += 1
+        time += INTERVAL / 1000.
 
 def read_temperature():
-    return temperature + math.sin(time / 20)
+    return temperature + math.sin(time / 20.0)
 
 def read_heater():
     return heater

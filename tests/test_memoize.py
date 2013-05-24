@@ -1,5 +1,5 @@
 
-from brewgearpi.memoize import memoize
+from brewberry.memoize import memoize
 import time
 
 def test_should_call_decorated_function():
