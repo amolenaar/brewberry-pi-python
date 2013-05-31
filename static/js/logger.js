@@ -44,7 +44,6 @@ $(function () {
                     var self = this;
                     var temperature_series;
                     var heater_series;
-                    var last_reading;
                     function dropOldData(series, ts) {
                         if (series.data.length < 1) return;
                         while (series.data[0].x < ts - HISTORY_DEPTH) {
@@ -52,14 +51,6 @@ $(function () {
                         }
                         self.redraw();
                     }
-                    console.log
-                    Logger(function (sample) {
-                        var time = Date.parse(sample.time);
-                        temperature_series.addPoint([time, sample.temperature], true, false);
-                        heater_series.addPoint([time, sample.heater], true, false);
-                        dropOldData(temperature_series, time);
-                        dropOldData(heater_series, time);
-                    });
                     temperature_series = self.addSeries({
                         name: 'Temperature',
                         color: '#89A54E',
@@ -73,6 +64,14 @@ $(function () {
                         color: '#4572A7',
                         yAxis: 1,
                         data: []
+                    });
+
+                    Logger(function (sample) {
+                        var time = Date.parse(sample.time);
+                        temperature_series.addPoint([time, sample.temperature], true, false);
+                        heater_series.addPoint([time, sample.heater ? 1 : 0], true, false);
+                        dropOldData(temperature_series, time);
+                        dropOldData(heater_series, time);
                     });
                 }
             }
@@ -107,20 +106,21 @@ $(function () {
             title: {
                 text: 'Heater',
                 style: {
-                    color: '#4572A7'
+                    color: '#A74572'
                 },
             },
             labels: {
+                enabled: false,
                 formatter: function() {
                     return this.value === 0 ? 'Off' : (this.value === 1 ? 'On' : '');
                 },
                 style: {
-                    color: '#4572A7'
+                    color: '#A74572'
                 },
             },
             min: 0,
             max: 1,
-            tickInterval: 1,
+            //tickInterval: 1,
             opposite: true
         }],
         tooltip: {
