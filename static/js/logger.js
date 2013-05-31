@@ -17,7 +17,7 @@ Logger = function (callback) {
                             console.log(sample);
                             callback(sample);
                         } catch (e) {
-                            console.log('parse error', e);
+                            console.log('parse error', e, 'text is:', text);
                         }
                         offset = text.length;
                     }
