@@ -5,8 +5,8 @@
 from collections import namedtuple
 import datetime
 
-TEMPERATURE_DELTA = 0.05 # degrees Celcius
-TIME_DELTA = datetime.timedelta(seconds=4)
+TEMPERATURE_DELTA = 0.07 # degrees Celcius
+TIME_DELTA = datetime.timedelta(seconds=60)
 
 
 def different(sample, prev_sample):
