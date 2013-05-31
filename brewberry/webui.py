@@ -5,7 +5,17 @@ import time
 from tornado.escape import json_encode
 from logger import json_appender
 
-def setup(sampler, mainloop):
+def setup(io, sampler, mainloop):
+
+    class HeaterHandler(tornado.web.RequestHandler):
+    
+        def get(self):
+            self.write(io.read_heater)
+
+        def post(self):
+            state = self.get_argument('set')
+            io.set_heater('on' == state)
+            self.write({ 'heater': io.read_heater()})
 
     class LoggerHandler(tornado.web.RequestHandler):
         # TODO: add "since" parameter
@@ -24,6 +34,7 @@ def setup(sampler, mainloop):
 
     application = tornado.web.Application([
         (r'/logger', LoggerHandler),
+        (r'/heater', HeaterHandler),
         (r'/(..*)', tornado.web.StaticFileHandler, {'path': 'static'}),
         (r'/$', tornado.web.RedirectHandler, {"url": "/index.html"})
         ])

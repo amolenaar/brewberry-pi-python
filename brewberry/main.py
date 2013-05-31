@@ -18,7 +18,7 @@ def main(io):
         log = Logger(sampler, json_appender(log_file))
         ioloop.PeriodicCallback(sampler, INTERVAL, mainloop).start()
 
-        webui.setup(sampler, mainloop)
+        webui.setup(io, sampler, mainloop)
 
         mainloop.start()
     finally:

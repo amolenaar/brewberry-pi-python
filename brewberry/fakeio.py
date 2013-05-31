@@ -23,5 +23,9 @@ def read_temperature():
 def read_heater():
     return heater
 
+def set_heater(val):
+    global heater
+    heater = val
+    return heater
 
 # vim:sw=4:et:ai
