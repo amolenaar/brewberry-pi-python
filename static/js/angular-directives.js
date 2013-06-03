@@ -99,16 +99,17 @@ angular.module('brewberry', [])
                     while (series.data[0].x < ts - HISTORY_DEPTH) {
                         series.data[0].remove(false);
                     }
-                    self.redraw();
+                    chart.redraw();
                 }
 
-                //scope.$watch(function() { return attrs.value; }, function(value) { });
-                Logger(function (sample) {
-                    var time = Date.parse(sample.time);
-                    temperature_series.addPoint([time, sample.temperature], true, false);
-                    heater_series.addPoint([time, sample.heater ? 1 : 0], true, false);
-                    dropOldData(temperature_series, time);
-                    dropOldData(heater_series, time);
+                scope.$watch("sample", function(sample) {
+                    if (sample) {
+                        var time = Date.parse(sample.time);
+                        temperature_series.addPoint([time, sample.temperature], true, false);
+                        heater_series.addPoint([time, sample.heater ? 1 : 0], true, false);
+                        dropOldData(temperature_series, time);
+                        dropOldData(heater_series, time);
+                    }
                 });
             }
         }
