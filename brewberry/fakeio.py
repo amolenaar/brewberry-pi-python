@@ -18,7 +18,7 @@ def read_time():
         time += INTERVAL / 1000.
 
 def read_temperature():
-    return temperature + math.sin(time / 20.0)
+    return temperature + math.sin(time / 20.0) + 40
 
 def read_heater():
     return heater

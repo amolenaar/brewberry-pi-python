@@ -16,11 +16,15 @@ angular.module('brewberry', [])
                         renderTo: element[0],
                         zoomType: 'xy',
                         type: 'spline',
+                        backgroundColor: 'transparent',
                         animation: Highcharts.svg // don't animate in old IE
                     },
 
                     title: {
-                        text: 'Mash'
+                        text: ''
+                    },
+                    credits: {
+                        enabled: false
                     },
                     legend: {
                         enabled: false
@@ -42,11 +46,12 @@ angular.module('brewberry', [])
                             style: {
                                 color: '#89A54E'
                             }
-                        }
+                        },
+                        opposite: true
                     }, {
                         gridLineWidth: 0,
                         title: {
-                            text: 'Heater',
+                            text: '',
                             style: {
                                 color: '#A74572'
                             },
@@ -62,7 +67,7 @@ angular.module('brewberry', [])
                         min: 0,
                         max: 1,
                         //tickInterval: 1,
-                        opposite: true
+                        //opposite: true
                     }],
                     tooltip: {
                         shared: true
@@ -111,5 +116,134 @@ angular.module('brewberry', [])
                 });
             }
         }
+    })
+    .directive('logGauge', function() {
+        return {
+            restrict: 'E',
+            template: '<div class="log-gauge"></div>',
+            transclude:true,
+            replace: true,
+
+            link: function (scope, element, attrs) {
+
+                var chart = new Highcharts.Chart({
+                    
+                    chart: {
+                        type: 'gauge',
+                        renderTo: element[0],
+                        backgroundColor: 'transparent',
+                        plotBackgroundColor: null,
+                        plotBackgroundImage: null,
+                        plotBorderWidth: 0,
+                        plotShadow: false
+                    },
+                    
+                    title: {
+                        enabled: false,
+                        //text: 'Thermometer'
+                        text: ''
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    pane: {
+                        startAngle: -150,
+                        endAngle: 150,
+                        background: [{
+                            backgroundColor: {
+                                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                                stops: [
+                                    [0, '#FFF'],
+                                    [1, '#333']
+                                ]
+                            },
+                            borderWidth: 0,
+                            outerRadius: '109%'
+                        }, {
+                            backgroundColor: {
+                                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+                                stops: [
+                                    [0, '#333'],
+                                    [1, '#FFF']
+                                ]
+                            },
+                            borderWidth: 1,
+                            outerRadius: '107%'
+                        }, {
+                            // default background
+                        }, {
+                            backgroundColor: '#DDD',
+                            borderWidth: 0,
+                            outerRadius: '105%',
+                            innerRadius: '103%'
+                        }]
+                    },
+                       
+                    // the value axis
+                    yAxis: {
+                        min: 20,
+                        max: 100,
+                        
+                        minorTickInterval: 'auto',
+                        minorTickWidth: 1,
+                        minorTickLength: 10,
+                        minorTickPosition: 'inside',
+                        minorTickColor: '#666',
+                        offset: 1,
+                
+                        tickPixelInterval: 30,
+                        tickWidth: 2,
+                        tickPosition: 'inside',
+                        tickLength: 10,
+                        tickColor: '#666',
+                        labels: {
+                            step: 2,
+                            rotation: 'auto',
+                            style: {
+                                fontSize: 'smaller'
+                            }
+                        },
+                        title: {
+                            text: '°C'
+                        },
+                        plotBands: [{
+                            from: 20,
+                            to: 50,
+                            color: '#0000BF' // blue
+                        }, {
+                            from: 50,
+                            to: 80,
+                            color: '#DDDF0D' // yellow
+                        }, {
+                            from: 80,
+                            to: 100,
+                            color: '#DF5353' // red
+                        }]        
+                    },
+                
+                    series: [{
+                        name: 'Temperature',
+                        data: [20],
+                        tooltip: {
+                            valueSuffix: '°C'
+                        },
+                        dataLabels: {
+                            formatter: function () {
+                                return this.y.toFixed(2); 
+                            }
+                        }
+                    }]
+                
+                });
+                scope.$watch("sample", function(sample) {
+                    if (sample) {
+                        console.log('gauge', sample);
+                        var point = chart.series[0].points[0];
+                        point.update(sample.temperature);
+                    }
+                });
+            }
+        }
     });
+
 // vim:sw=4:et:ai

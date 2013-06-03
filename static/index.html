@@ -13,7 +13,7 @@
  <body ng-app="brewberry">
   <div id="container">
    <div id="logger" ng-controller="Logger">
-    <h1>{{sample.temperature | number:2}}</h1>
+    <log-gauge></log-gauge>
     <log-chart></log-chart>
    </div>
 
@@ -26,6 +26,7 @@
 
   <script src="js/jquery.js"></script>
   <script src="js/highcharts.js"></script>
+  <script src="js/highcharts-more.js"></script>
   <script src="js/angular.js"></script>
   <script src="js/angular-directives.js"></script>
   <script src="js/logger.js"></script> 
