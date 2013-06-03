@@ -11,9 +11,13 @@
   width: 100%;
 }
 
-#chart {
+.log-chart {
   height: 100%;
   width: 100%;
+}
+
+#logger h1 {
+  float: right;
 }
 
 #controls {

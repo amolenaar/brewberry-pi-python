@@ -13,7 +13,8 @@
  <body ng-app="brewberry">
   <div id="container">
    <div id="logger" ng-controller="Logger">
-    <log-chart />
+    <h1>{{sample.temperature | number:2}}</h1>
+    <log-chart></log-chart>
    </div>
 
    <div id="controls" ng-controller="Controls">

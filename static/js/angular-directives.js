@@ -4,7 +4,7 @@ angular.module('brewberry', [])
     .directive('logChart', function() {
         return {
             restrict: 'E',
-            template: '<div></div>',
+            template: '<div class="log-chart"></div>',
             transclude:true,
             replace: true,
 
@@ -16,8 +16,7 @@ angular.module('brewberry', [])
                         renderTo: element[0],
                         zoomType: 'xy',
                         type: 'spline',
-                        animation: Highcharts.svg, // don't animate in old IE
-                        marginRight: 10
+                        animation: Highcharts.svg // don't animate in old IE
                     },
 
                     title: {
@@ -53,7 +52,6 @@ angular.module('brewberry', [])
                             },
                         },
                         labels: {
-                            enabled: false,
                             formatter: function() {
                                 return this.value === 0 ? 'Off' : (this.value === 1 ? 'On' : '');
                             },
