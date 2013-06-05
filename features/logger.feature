@@ -20,11 +20,11 @@ Feature: Brew system logging
   Examples:
     | delta_t | logged |
     |  0.5    | one    |
-    |  0.05   | one    |
-    |  0.0499 | no     |
+    |  0.07   | one    |
+    |  0.0699 | no     |
     |  0.00   | no     |
-    | -0.0499 | no     |
-    | -0.05   | one    |
+    | -0.0699 | no     |
+    | -0.071  | one    |
     | -0.5    | one    |
 
 
