@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('brewberry', [])
+angular.module('brewberry.directive', [])
     .directive('logChart', function() {
         return {
             restrict: 'E',
@@ -194,17 +194,18 @@ angular.module('brewberry', [])
                         tickPixelInterval: 30,
                         tickWidth: 2,
                         tickPosition: 'inside',
-                        tickLength: 10,
+                        tickLength: 1,
                         tickColor: '#666',
                         labels: {
                             step: 2,
                             rotation: 'auto',
                             style: {
-                                fontSize: 'smaller'
+                                fontSize: '6px'
                             }
                         },
                         title: {
-                            text: '°C'
+                            enabled: false,
+                            text: ''
                         },
                         plotBands: [{
                             from: 20,
