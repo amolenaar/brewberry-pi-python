@@ -17,9 +17,10 @@
 }
 
 .log-gauge {
-  height: 70%;
+  height: 50%;
   width: 30%;
   position: absolute;
+  z-index: 99;
 }
 #logger h1 {
   float: right;
