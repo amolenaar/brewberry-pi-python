@@ -13,14 +13,14 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
 
     .controller('Controls', function ($scope, $http) {
         function setHeater(power) {
-            $http.post('/heater', { 'power': true });
+            $http.post('/heater', { 'set': power });
         }
 
         $scope.startHeater = function () {
-            setHeater(true);
+            setHeater('on');
         };
         $scope.stopHeater = function () {
-            setHeater(false);
+            setHeater('off');
         };
         $scope.showTemperatureDialog = false;
 

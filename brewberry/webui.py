@@ -2,20 +2,38 @@
 import tornado.web
 import tornado.httpserver
 import time
-from tornado.escape import json_encode
-from logger import json_appender
+from tornado.escape import json_decode
+
+class JsonMixin(object):
+    """
+    Enable request handlers to prepare JSON data.
+    """
+    def prepare(self):
+        if "application/json" in self.request.headers.get("Content-Type"):
+            self.get_json = json_decode(self.request.body).get
+
 
 def setup(io, sampler, mainloop):
 
-    class HeaterHandler(tornado.web.RequestHandler):
+    class HeaterHandler(JsonMixin, tornado.web.RequestHandler):
     
         def get(self):
-            self.write(io.read_heater)
+            self.write({ 'heater': io.read_heater()})
 
         def post(self):
-            state = self.get_argument('set')
+            state = self.get_json('set')
             io.set_heater('on' == state)
-            self.write({ 'heater': io.read_heater()})
+            self.get()
+
+    class TemperatureHandler(JsonMixin, tornado.web.RequestHandler):
+    
+        def get(self):
+            self.write({ 'temperature': io.read_temperature()})
+
+        def post(self):
+            t = float(self.get_argument('set'))
+            # set Target temp on Controller
+            self.get()
 
     class LoggerHandler(tornado.web.RequestHandler):
         # TODO: add "since" parameter
@@ -35,6 +53,7 @@ def setup(io, sampler, mainloop):
     application = tornado.web.Application([
         (r'/logger', LoggerHandler),
         (r'/heater', HeaterHandler),
+        (r'/temperature', TemperatureHandler),
         (r'/(..*)', tornado.web.StaticFileHandler, {'path': 'static'}),
         (r'/$', tornado.web.RedirectHandler, {"url": "/index.html"})
         ])
