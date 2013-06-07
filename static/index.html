@@ -17,10 +17,12 @@
     <log-chart></log-chart>
    </div>
 
-   <div id="controls" class="buttons" ng-controller="Controls">
-    <a ng-click="setHeater('on')">Start</a>
-    <a ng-click="setHeater('off')">Stop</a>
-    <a ng-click="showTemperatureDialog=true">Set</a>
+   <div id="controls" ng-controller="Controls">
+    <div class="buttons">
+     <a ng-click="setHeater('on')">Start</a>
+     <a ng-click="setHeater('off')">Stop</a>
+     <a ng-click="showTemperatureDialog=true">Set</a>
+    </div>
     <div class="dialog" ng-show="showTemperatureDialog">
      <form ng-submit="setTemperature(temperature)">
       <div class="content">
