@@ -1,6 +1,6 @@
 from lettuce import step, world
 
-from brewberry import fakeio, logger, sampler
+from brewberry import fakeio, logger, sampler, controller
 
 DEFAULT_TEMP = 20.0
 
@@ -43,5 +43,27 @@ def no_one_new_line_is_logged(step, s):
         assert len(world.log_lines) == 2, world.log_lines
     else:
         assert len(world.log_lines) == 1, world.log_lines
+
+@step(u'Given a mash temperature of (\d+) degrees')
+def given_a_mash_temperature_of_66_degrees(step, degrees):
+    world.controller = controller.Controller(fakeio)
+    world.controller.mash_temperature = float(degrees)
+
+@step(u'And the heating is turned (on|off)')
+def and_the_heating_is_on_off(step, s):
+    fakeio.set_heater(s == 'on')
+
+@step(u'When the fluid is (\d+) degrees')
+def when_the_fluid_is_xx_degrees(step, degrees):
+    fakeio.temperature = float(degrees)
+    world.controller()
+
+@step(u'Then the heating should be turned on')
+def then_the_heating_should_be_turned_on(step):
+    assert fakeio.read_heater()
+
+@step(u'Then the heating should be turned off')
+def then_the_heating_should_be_turned_off(step):
+    assert not fakeio.read_heater()
 
 # vim: sw=4:et:ai
