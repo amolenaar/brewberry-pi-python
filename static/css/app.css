@@ -1,4 +1,4 @@
-#container {
+#container, .dialog {
   position: absolute;
   right: 0;
   left: 0;
@@ -7,7 +7,7 @@
 }
 
 #logger {
-  height: 90%;
+  height: 85%;
   width: 100%;
 }
 
@@ -21,19 +21,23 @@
   width: 30%;
   position: absolute;
   z-index: 99;
+  display: none;
 }
 #logger h1 {
   float: right;
 }
 
 #controls {
+  height: 15%;
+}
+
+.buttons {
   display: table;
-  height: 10%;
   width: 100%;
   text-align: center;
 }
 
-#controls a {
+.buttons a {
   display: table-cell;
   text-align: center;
   vertical-align: middle;
@@ -42,7 +46,30 @@
   background-color: #f8f8f8;
 }
 
-#controls a+a {
+.buttons a+a {
   border-left: 1px solid gray;
+}
+
+.dialog {
+  background-color: rgba(255, 255, 255, .6);
+}
+
+.dialog form {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #eee;
+  margin: auto;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  border-radius: 3pt;
+}
+
+.dialog .content {
+  margin: 12pt;
+}
+
+.dialog .buttons {
+  line-height: 20pt;
 }
 
