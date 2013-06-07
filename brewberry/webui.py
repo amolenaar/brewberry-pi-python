@@ -13,8 +13,9 @@ class JsonMixin(object):
             self.get_json = json_decode(self.request.body).get
 
 
-def setup(io, sampler, mainloop):
+def setup(io, sampler, controller, mainloop):
 
+    # Deprecated, should start/stop mash process, works on controller
     class HeaterHandler(JsonMixin, tornado.web.RequestHandler):
     
         def get(self):
@@ -29,12 +30,13 @@ def setup(io, sampler, mainloop):
     class TemperatureHandler(JsonMixin, tornado.web.RequestHandler):
     
         def get(self):
-            self.write({ 'temperature': io.read_temperature()})
+            self.write({ 'mash-temperature': controller.mash_temperature })
 
         def post(self):
             t = float(self.get_json('set'))
             print 'Set temperature to', t
             # set Target temp on Controller
+            controller.mash_temperature = t
             self.get()
 
 
