@@ -12,23 +12,17 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
     })
 
     .controller('Controls', function ($scope, $http) {
-        function setHeater(power) {
+        $scope.setHeater = function (power) {
             $http.post('/heater', { 'set': power });
         }
 
-        $scope.startHeater = function () {
-            setHeater('on');
-        };
-        $scope.stopHeater = function () {
-            setHeater('off');
-        };
         $scope.showTemperatureDialog = false;
 
         $scope.cancelDialog = function () {
             $scope.showTemperatureDialog = false;
         }
         $scope.setTemperature = function (t) {
-            $http.post('/temperature', { 'temperature': t });
+            $http.post('/temperature', { 'set': t });
             $scope.showTemperatureDialog = false;
         }
     });

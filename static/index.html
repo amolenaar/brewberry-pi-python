@@ -18,18 +18,18 @@
    </div>
 
    <div id="controls" class="buttons" ng-controller="Controls">
-    <a ng-click="startHeater()">Start</a>
-    <a ng-click="stopHeater()">Stop</a>
+    <a ng-click="setHeater('on')">Start</a>
+    <a ng-click="setHeater('off')">Stop</a>
     <a ng-click="showTemperatureDialog=true">Set</a>
     <div class="dialog" ng-show="showTemperatureDialog">
-     <form>
+     <form ng-submit="setTemperature(temperature)">
       <div class="content">
        <label>Set temperature (&degC):</label>
        <input type="number" ng-model="temperature" />
       </div>
       <div class="buttons">
        <a ng-click="cancelDialog()">Cancel</a>
-       <a ng-click="setTemperature(temperature)">OK</a>
+       <a type="submit" ng-click="setTemperature(temperature)">OK</a>
       </div>
      </form>
     </div>

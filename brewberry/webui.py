@@ -25,20 +25,24 @@ def setup(io, sampler, mainloop):
             io.set_heater('on' == state)
             self.get()
 
+
     class TemperatureHandler(JsonMixin, tornado.web.RequestHandler):
     
         def get(self):
             self.write({ 'temperature': io.read_temperature()})
 
         def post(self):
-            t = float(self.get_argument('set'))
+            t = float(self.get_json('set'))
+            print 'Set temperature to', t
             # set Target temp on Controller
             self.get()
 
+
     class LoggerHandler(tornado.web.RequestHandler):
-        # TODO: add "since" parameter
+
         @tornado.web.asynchronous
         def get(self):
+            # TODO: add "since" parameter
             self.set_header('Content-Type', 'application/json')
             sampler.observers.add(self)
 
@@ -49,6 +53,7 @@ def setup(io, sampler, mainloop):
         def on_connection_close(self):
             print 'Connection closed', id(self)
             sampler.observers.remove(self)
+
 
     application = tornado.web.Application([
         (r'/logger', LoggerHandler),
