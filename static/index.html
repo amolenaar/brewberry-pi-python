@@ -5,16 +5,17 @@
    <meta charset="utf-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
    <meta name="apple-mobile-web-app-capable" content="yes" />
-<!--
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.6/angular.js"></script>
--->
   <link rel="stylesheet" href="css/app.css"/>
  </head>
  <body ng-app="brewberry">
   <div id="container">
    <div id="logger" ng-controller="Logger">
-    <log-gauge></log-gauge>
-    <log-chart></log-chart>
+    <div class="log-gauge" log-gauge sample="sample" value="temperature">
+    </div>
+    <div class="log-chart" log-chart>
+      <series name="Temperature" sample="sample" valuesuffix=" &deg;C" x="time" y="temperature" color="#89A54E"></series>
+      <series name="Heater" sample="sample" x="time" y="heater" color="#4572A7"></series>
+    </div>
    </div>
 
    <div id="controls" ng-controller="Controls">
@@ -26,7 +27,7 @@
     <div class="dialog" ng-show="showTemperatureDialog">
      <form ng-submit="setTemperature(temperature)">
       <div class="content">
-       <label>Set temperature (&degC):</label>
+       <label>Set temperature (&deg;C):</label>
        <input type="number" ng-model="temperature" />
       </div>
       <div class="buttons">
