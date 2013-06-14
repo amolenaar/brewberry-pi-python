@@ -14,6 +14,7 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
             // Hook up feed:
             var id = feed(function (sample) {
                 if (sample) {
+                    sample.time = Date.parse(sample.time);
                     console.log('New sample', sample);
                     $scope.sample = sample;
                     $scope.$apply();

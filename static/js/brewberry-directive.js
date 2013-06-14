@@ -128,8 +128,7 @@ angular.module('brewberry.directive', [])
 
                 scope.$watch(attrs.sample, function(sample) {
                     if (sample) {
-                        var time = Date.parse(sample[x]);
-                        dropOldData(series, time);
+                        dropOldData(series, sample[x]);
                         series.addPoint([time, sample[y]], true, false);
                     }
                 });
