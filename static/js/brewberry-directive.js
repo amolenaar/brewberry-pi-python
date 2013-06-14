@@ -2,12 +2,12 @@
 
 angular.module('brewberry.directive', [])
     .directive('logChart', function() {
-        Highcharts.setOptions({
-            // This is for all plots, change Date axis to local timezone
-            global : {
-                useUTC : false
-            }
-        });
+//        Highcharts.setOptions({
+//            // This is for all plots, change Date axis to local timezone
+//            global : {
+//                useUTC : false
+//            }
+//        });
         return {
             scope: true,
 
