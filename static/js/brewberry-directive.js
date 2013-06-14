@@ -94,7 +94,7 @@ angular.module('brewberry.directive', [])
             restrict: 'E',
             transclude:true,
             link: function (scope, element, attrs) {
-                var HISTORY_DEPTH = 2 * 3600 * 1000; // 2 hours of history
+                var HISTORY_DEPTH = 3600 * 1000; // 1 hours of history
                 var hostory_depth = attrs.history || HISTORY_DEPTH
 
                 var series = scope.chart.addSeries({

@@ -2,7 +2,7 @@
 
 angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
     .controller('Logger', function ($scope, $http, feed) {
-        var since = new Date (Date.now() - 2*60*60*1000).toISOString();
+        var since = new Date (Date.now() - 3600*1000).toISOString();
         console.log('Fetching data since', since);
         $http.get('/logger/history', {
             params: { 'since': since }
