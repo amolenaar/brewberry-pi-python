@@ -11,7 +11,7 @@ angular.module('brewberry.service', [])
                         if (client) client.abort();
                         console.log('Set up new client', client);
                         client = new XMLHttpRequest();
-                        client.open("GET", "logger", true);
+                        client.open("GET", "logger/feed", true);
                         client.onreadystatechange = function() {
                             console.log('state:', this.readyState);
                             if (this.readyState === 3) {

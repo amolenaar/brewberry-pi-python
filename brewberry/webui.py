@@ -2,7 +2,7 @@
 import tornado.web
 import tornado.httpserver
 import time
-from tornado.escape import json_decode
+from tornado.escape import json_encode, json_decode
 
 class JsonMixin(object):
     """
@@ -56,9 +56,23 @@ def setup(io, sampler, controller, mainloop):
             print 'Connection closed', id(self)
             sampler.observers.remove(self)
 
+    class HistoryHandler(tornado.web.RequestHandler):
+
+        def get(self):
+            since = self.get_argument('since')
+            # TODO: assert: matches: \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
+            with open('session.log') as f:
+                samples = []
+                for line in f:
+                    sample = json_decode(line)
+                    # String compare is sufficient
+                    if sample['time'] > since:
+                        samples.append(sample)
+            self.write(json_encode(samples))
 
     application = tornado.web.Application([
-        (r'/logger', LoggerHandler),
+        (r'/logger/feed', LoggerHandler),
+        (r'/logger/history', HistoryHandler),
         (r'/heater', HeaterHandler),
         (r'/temperature', TemperatureHandler),
         (r'/(..*)', tornado.web.StaticFileHandler, {'path': 'static'}),
