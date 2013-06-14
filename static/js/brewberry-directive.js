@@ -108,8 +108,7 @@ angular.module('brewberry.directive', [])
 
                 function dropOldData(series, ts) {
                     console.log('nice', series.data);
-                    if (series.data.length < 1 || !series.data[0]) return;
-                    while (series.data[0].x < ts - HISTORY_DEPTH) {
+                    while (series.data.length > 0 && series.data[0].x < ts - HISTORY_DEPTH) {
                         series.data[0].remove(false);
                     }
                     //scope.chart.redraw();
