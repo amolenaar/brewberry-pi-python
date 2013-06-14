@@ -116,6 +116,16 @@ angular.module('brewberry.directive', [])
 
                 var x = attrs.x;
                 var y = attrs.y;
+                scope.$watch("chartData", function (chartData) {
+                    if (chartData) {
+                        var newData = [];
+                        chartData.forEach(function (e) {
+                            newData.push([e[x], e[y]]);
+                        });
+                        series.setData(newData, true);
+                    }
+                });
+
                 scope.$watch(attrs.sample, function(sample) {
                     if (sample) {
                         var time = Date.parse(sample[x]);

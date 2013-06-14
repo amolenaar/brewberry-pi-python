@@ -3,18 +3,18 @@
 angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
     .controller('Logger', function ($scope, $http, feed) {
         var since = new Date (Date.now() - 2*60*60*1000).toISOString();
+        console.log('Fetching data since', since);
         $http.get('/logger/history', {
-            params: { 'since': since}
+            params: { 'since': since }
         }).success(function(data, status) {
             //provide data to charts
             console.log(data);
-//            data.forEach(function (e) {
-//                $scope.sample = e;
-//                $scope.$apply();
-//            });
+            $scope.chartData = data;
+            //$scope.$apply();
             // Hook up feed:
             var id = feed(function (sample) {
                 if (sample) {
+                    console.log('New sample', sample);
                     $scope.sample = sample;
                     $scope.$apply();
                 }
