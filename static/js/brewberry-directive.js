@@ -107,7 +107,8 @@ angular.module('brewberry.directive', [])
                 });
 
                 function dropOldData(series, ts) {
-                    if (series.data.length < 1) return;
+                    console.log('nice', series.data);
+                    if (series.data.length < 1 || !series.data[0]) return;
                     while (series.data[0].x < ts - HISTORY_DEPTH) {
                         series.data[0].remove(false);
                     }
@@ -125,11 +126,10 @@ angular.module('brewberry.directive', [])
                         series.setData(newData, true);
                     }
                 });
-
                 scope.$watch(attrs.sample, function(sample) {
                     if (sample) {
                         dropOldData(series, sample[x]);
-                        series.addPoint([time, sample[y]], true, false);
+                        series.addPoint([sample[x], sample[y]], true, false);
                     }
                 });
                 console.log('Added series for ', attrs.name );

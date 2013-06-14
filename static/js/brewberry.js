@@ -9,8 +9,11 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
         }).success(function(data, status) {
             //provide data to charts
             console.log(data);
+            data.forEach(function (e) {
+                e.time = Date.parse(e.time);
+            });
             $scope.chartData = data;
-            //$scope.$apply();
+
             // Hook up feed:
             var id = feed(function (sample) {
                 if (sample) {
