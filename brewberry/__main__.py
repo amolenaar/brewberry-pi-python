@@ -5,6 +5,8 @@ if __name__ == '__main__':
     if '--fake' in sys.argv:
         import fakeio as io
         io.static_time = False
+        import time
+        io.time = time.time();
         io.INTERVAL = main.SAMPLER_INTERVAL
     else:
         import raspio as io
