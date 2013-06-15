@@ -31,7 +31,7 @@ class Sampler(object):
 
     def notify(self, sample):
         print self.observers
-        for observer in self.observers:
+        for observer in list(self.observers):
             observer(sample)
 
     def __call__(self):
