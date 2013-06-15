@@ -24,9 +24,12 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
                     console.log('New sample', sample);
                     $scope.sample = sample;
                 }
-                $http.get('/logger/feed').success(callback)
+                $http.get('/logger/feed').success(callback);
             };
             callback();
+        }).error(function (data) {
+            // Try again, and again and again...
+            $http.get('/logger/feed').success(callback);
         });
 
     })
