@@ -15,14 +15,15 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
             $scope.chartData = data;
 
             // Hook up feed:
-            var id = feed(function (sample) {
+            function callback(sample) {
                 if (sample) {
                     sample.time = Date.parse(sample.time);
                     console.log('New sample', sample);
                     $scope.sample = sample;
                     $scope.$apply();
                 }
-            });
+            };
+            var id = feed(callback);
         });
 
     })
