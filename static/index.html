@@ -24,7 +24,7 @@
      <a ng-click="setHeater('off')">Stop</a>
      <a ng-click="showTemperatureDialog=true">Set</a>
     </div>
-    <div class="dialog" ng-show="showTemperatureDialog">
+    <div class="dialog" ng-cloak ng-show="showTemperatureDialog">
      <form ng-submit="setTemperature(temperature)">
       <div class="content">
        <label>Set temperature (&deg;C):</label>
