@@ -49,6 +49,11 @@ angular.module('brewberry.directive', [])
                                     color: '#89A54E'
                                 }
                             },
+                            plotLines: [{
+                                value: 0,
+                                width: 1,
+                                color: '#808080'
+                            }],
                             opposite: true
                         }, {
                             gridLineWidth: 0,
@@ -93,15 +98,13 @@ angular.module('brewberry.directive', [])
             transclude:true,
             link: function (scope, element, attrs) {
                 var HISTORY_DEPTH = 3600 * 1000; // 1 hours of history
-                var hostory_depth = attrs.history || HISTORY_DEPTH
-
                 var series = scope.chart.addSeries({
                     name: attrs.name,
-                    type: attrs.yaxis === "1" ? 'area' : 'spline',
+                    type: attrs.type === "switch" ? 'area' : 'spline',
                     color: attrs.color,
-                    yAxis: parseInt(attrs.yaxis || '0'),
+                    yAxis: attrs.type === "switch" ? 1 : 0,
                     tooltip: {
-                        valueSuffix: attrs.valuesuffix
+                        valueSuffix: attrs.type === "switch" ? "" : " °C"
                     },
                     data: []
                 });
@@ -125,6 +128,7 @@ angular.module('brewberry.directive', [])
                 });
                 scope.$watch(attrs.sample, function(sample) {
                     if (sample) {
+                        console.log('Update sample for', attrs.name, sample[y]);
                         dropOldData(series, sample[x]);
                         series.addPoint([sample[x], sample[y]], true, false);
                     }

@@ -14,16 +14,17 @@ CONTROL_INTERVAL = 2000
 def main(io):
     mainloop = ioloop.IOLoop.instance()
 
-    sampler = Sampler(io)
+    controller = Controller(io)
+    sampler = Sampler(io, controller)
+
     log_file = open('session.log', 'a')
     log = Logger(sampler, json_appender(log_file))
 
-    control = Controller(io)
     try:
         ioloop.PeriodicCallback(sampler, SAMPLER_INTERVAL, mainloop).start()
-        ioloop.PeriodicCallback(control, CONTROL_INTERVAL, mainloop).start()
+        ioloop.PeriodicCallback(controller, CONTROL_INTERVAL, mainloop).start()
 
-        webui.setup(io, sampler, control, mainloop)
+        webui.setup(io, sampler, controller, mainloop)
 
         mainloop.start()
     finally:

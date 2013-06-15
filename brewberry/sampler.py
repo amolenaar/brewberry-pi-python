@@ -9,24 +9,28 @@
 
 from collections import namedtuple
 
-Sample = namedtuple('Sample', ['time', 'temperature', 'heater'])
+Sample = namedtuple('Sample', ['time', 'temperature', 'heater', 'controller', 'mash_temperature'])
 
 def _sample_as_dict(self):
     return {
         'time': self.time.isoformat(),
         'temperature': self.temperature,
-        'heater': self.heater
+        'heater': self.heater,
+        'controller': self.controller,
+        'mash-temperature': self.mash_temperature
     }
 
 Sample.as_dict = _sample_as_dict
 
-def sample(io):
-    return Sample(io.read_time(), io.read_temperature(), io.read_heater())
+def sample(io, controller):
+    return Sample(io.read_time(), io.read_temperature(), io.read_heater(),
+                  controller.started, controller.mash_temperature)
 
 
 class Sampler(object):
-    def __init__(self, io):
+    def __init__(self, io, controller):
         self._io = io
+        self._controller = controller
         self.observers = set()
 
     def notify(self, sample):
@@ -35,7 +39,7 @@ class Sampler(object):
             observer(sample)
 
     def __call__(self):
-        s = sample(self._io)
+        s = sample(self._io, self._controller)
         self.notify(s)
         return s
 
