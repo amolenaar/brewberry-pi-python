@@ -50,7 +50,9 @@ def setup(io, sampler, controller, mainloop):
 
         def __call__(self, sample):
             self.write(sample.as_dict())
-            self.flush()
+            self.finish()
+            #self.flush()
+            sampler.observers.remove(self)
 
         def on_connection_close(self):
             print 'Connection closed', id(self)

@@ -20,10 +20,10 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
                     sample.time = Date.parse(sample.time);
                     console.log('New sample', sample);
                     $scope.sample = sample;
-                    $scope.$apply();
                 }
+                $http.get('/logger/feed').success(callback)
             };
-            var id = feed(callback);
+            callback();
         });
 
     })
