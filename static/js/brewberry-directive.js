@@ -100,6 +100,7 @@ angular.module('brewberry.directive', [])
                 var series = scope.chart.addSeries({
                     name: attrs.name,
                     color: attrs.color,
+                    yAxis: parseInt(attrs.yaxis || '0'),
                     tooltip: {
                         valueSuffix: attrs.valuesuffix
                     },
