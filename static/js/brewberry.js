@@ -2,6 +2,11 @@
 
 angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
     .controller('Logger', function ($scope, $http, feed) {
+        function normalizeSample(sample) {
+            sample.time = Date.parse(sample.time);
+            sample.heater = sample.heater ? 1 : 0;
+        }
+
         var since = new Date (Date.now() - 3600*1000).toISOString();
         console.log('Fetching data since', since);
         $http.get('/logger/history', {
@@ -9,15 +14,13 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
         }).success(function(data, status) {
             //provide data to charts
             console.log(data);
-            data.forEach(function (e) {
-                e.time = Date.parse(e.time);
-            });
+            data.forEach(normalizeSample);
             $scope.chartData = data;
 
             // Hook up feed:
             function callback(sample) {
                 if (sample) {
-                    sample.time = Date.parse(sample.time);
+                    normalizeSample(sample);
                     console.log('New sample', sample);
                     $scope.sample = sample;
                 }
