@@ -13,3 +13,7 @@ Feature: Temperature control
     When the fluid is 66 degrees
     Then the heating should be turned off
 
+  Scenario: heater is turned off if controller is turned off
+    Given controller and heater turned on
+    When I turn off the controller
+    Then the heating should be turned off

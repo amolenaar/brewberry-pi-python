@@ -10,7 +10,8 @@ def a_running_system(step):
     fakeio.temperature = DEFAULT_TEMP
     fakeio.heater = Off
     world.log_lines = []
-    world.sampler = sampler.Sampler(fakeio)
+    world.controller = controller.Controller(fakeio)
+    world.sampler = sampler.Sampler(fakeio, world.controller)
     world.logger = logger.Logger(world.sampler, world.log_lines.append)
 
 @step(u'When a line is logged')
@@ -44,10 +45,14 @@ def no_one_new_line_is_logged(step, s):
     else:
         assert len(world.log_lines) == 1, world.log_lines
 
+## Controller:
+
 @step(u'Given a mash temperature of (\d+) degrees')
 def given_a_mash_temperature_of_66_degrees(step, degrees):
+    a_running_system(step)
     world.controller = controller.Controller(fakeio)
     world.controller.mash_temperature = float(degrees)
+    world.controller.started = True
 
 @step(u'And the heating is turned (on|off)')
 def and_the_heating_is_on_off(step, s):
@@ -64,6 +69,17 @@ def then_the_heating_should_be_turned_on(step):
 
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
-    assert not fakeio.read_heater()
+    assert not fakeio.read_heater(), fakeio.read_heater()
 
+@step(u'Given controller and heater turned on')
+def given_controller_and_heater_turned_on(step):
+    a_running_system(step)
+    world.controller.started = True
+    fakeio.set_heater(On)
+    world.controller.mash_temperature = 66
+
+@step(u'When I turn off the controller')
+def when_i_turn_off_the_controller(step):
+    world.controller.started = False
+    
 # vim: sw=4:et:ai
