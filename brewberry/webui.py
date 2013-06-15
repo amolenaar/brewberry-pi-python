@@ -15,15 +15,16 @@ class JsonMixin(object):
 
 def setup(io, sampler, controller, mainloop):
 
+    # TODO: put temp. dialog on top of screen instead of dialog in the middle.
     # Deprecated, should start/stop mash process, works on controller
-    class HeaterHandler(JsonMixin, tornado.web.RequestHandler):
+    class ControllerHandler(JsonMixin, tornado.web.RequestHandler):
     
         def get(self):
-            self.write({ 'heater': io.read_heater()})
+            self.write({ 'controller': controller.started })
 
         def post(self):
             state = self.get_json('set')
-            io.set_heater('on' == state)
+            controller.started = ('on' == state)
             self.get()
 
 
@@ -44,14 +45,12 @@ def setup(io, sampler, controller, mainloop):
 
         @tornado.web.asynchronous
         def get(self):
-            # TODO: add "since" parameter
             self.set_header('Content-Type', 'application/json')
             sampler.observers.add(self)
 
         def __call__(self, sample):
             self.write(sample.as_dict())
             self.finish()
-            #self.flush()
             sampler.observers.remove(self)
 
         def on_connection_close(self):
@@ -75,7 +74,7 @@ def setup(io, sampler, controller, mainloop):
     application = tornado.web.Application([
         (r'/logger/feed', LoggerHandler),
         (r'/logger/history', HistoryHandler),
-        (r'/heater', HeaterHandler),
+        (r'/controller', ControllerHandler),
         (r'/temperature', TemperatureHandler),
         (r'/(..*)', tornado.web.StaticFileHandler, {'path': 'static'}),
         (r'/$', tornado.web.RedirectHandler, {"url": "/index.html"})

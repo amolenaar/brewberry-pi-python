@@ -33,7 +33,7 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
 
     .controller('Controls', function ($scope, $http) {
         $scope.setHeater = function (power) {
-            $http.post('/heater', { 'set': power });
+            $http.post('/controller', { 'set': power });
         }
 
         $scope.showTemperatureDialog = false;
