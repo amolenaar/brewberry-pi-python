@@ -17,7 +17,7 @@ angular.module('brewberry.directive', [])
                         chart: {
                             renderTo: element[0],
                             zoomType: 'xy',
-                            type: 'spline',
+                            type: 'area',
                             backgroundColor: 'transparent',
                             animation: Highcharts.svg // don't animate in old IE
                         },
@@ -67,9 +67,7 @@ angular.module('brewberry.directive', [])
                                 },
                             },
                             min: 0,
-                            max: 1,
-                            //tickInterval: 1,
-                            //opposite: true
+                            max: 1
                         }],
                         tooltip: {
                             shared: true
@@ -99,6 +97,7 @@ angular.module('brewberry.directive', [])
 
                 var series = scope.chart.addSeries({
                     name: attrs.name,
+                    type: attrs.yaxis === "1" ? 'area' : 'spline',
                     color: attrs.color,
                     yAxis: parseInt(attrs.yaxis || '0'),
                     tooltip: {
@@ -111,7 +110,6 @@ angular.module('brewberry.directive', [])
                     while (series.data.length > 0 && series.data[0].x < ts - HISTORY_DEPTH) {
                         series.data[0].remove(false);
                     }
-                    //scope.chart.redraw();
                 }
 
                 var x = attrs.x;
