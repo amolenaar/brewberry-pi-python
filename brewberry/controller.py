@@ -52,11 +52,11 @@ class Controller(object):
             return self.Resting
 
         watts = (self.config.power * self.config.efficiency)
-        self.start_time = io.read_time()
+        self.start_time = io.read_time().toordinal()
         self.end_time = start_time + self.config.volume * dT * 4186 / watts
    
         def Wait(self):
-            t = io.read_time()
+            t = io.read_time().toordinal()
             if t >= self.end_time:
                 return self.Slacking
         return self.Wait
