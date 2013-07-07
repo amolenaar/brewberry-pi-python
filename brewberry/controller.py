@@ -8,7 +8,7 @@ JOULES_1_LITRE = 4186
 
 class Config(object):
 
-    def __init__(self, power = 2000, efficiency = .5, volume = 17):
+    def __init__(self, power = 2000, efficiency = .75, volume = 17):
         self.power = power # Watts
         self.efficiency = efficiency
         self.volume = volume # litres
@@ -25,6 +25,7 @@ class Controller(object):
         self._io = io
         self.mash_temperature = 0
         self._started = Off
+        self.act = self.Resting
 
     def _set_started(self, v):
         self._started = v and On or Off
@@ -34,50 +35,56 @@ class Controller(object):
 
     def __call__(self):
         io = self._io
-        if self._started and self.mash_temperature > io.read_temperature():
-            if not io.read_heater():
-                io.set_heater(True)
-        else:
-            if io.read_heater():
-                io.set_heater(False)
+        if self._started:
+            new_state = self.act()
+            if new_state: self.act = new_state
+
+    def Heating(self):
+        """
+        . calculate time to heat
+        . Heat as long as the timer has not elapsed
+        """
+        io = self._io
+        temp = io.read_temperature()
+        dT = (self.mash_temperature - temp)
+
+        if dT < 0:
+            return self.Resting
+
+        watts = (self.config.power * self.config.efficiency)
+        self.start_time = io.read_time()
+        self.end_time = start_time + self.config.volume * dT * 4186 / watts
+   
+        def Wait(self):
+            t = io.read_time()
+            if t >= self.end_time:
+                return self.Slacking
+        return self.Wait
+
+    def Slacking(self):
+        """
+        . Keep track of x last temperatures
+        . Define dtemp over x temperature readings
+        . If dtemp < y go to next stage
+        """
+        io = self._io
+        self.sliding_window = []
+        def Wait(self):
+            s = self.sliding_window
+            s.append(io.read_temperature())
+            if len(s) > 10 and abs(s[-10] - s[-1]) < 0.05:
+                return self.Resting
+        return Wait()
 
 
-# State machine:
-class State(object):
-
-    def __init__(self, io):
-        self.io = io
-
-
-class Heating(State):
-    """
-    . calculate time to heat
-    . Heat as long as the timer has not elapsed
-    """
-
-    def next(self):
-        return Slacking()
-
-
-class Slacking(State):
-    """
-    . Keep track of x last temperatures
-    . Define dtemp over x temperature readings
-    . If dtemp < y go to next stage
-    """
-
-    def next(self):
-        return Resting()
-
-
-class Resting(State):
-    """
-    . keep track of last temperature reading
-    . If t_mash < y-d degrees, go to next stage
-    """
-
-    def next(self):
-        return Heating()
+    def Resting(self):
+        """
+        . keep track of last temperature reading
+        . If t_mash < y-d degrees, go to next stage
+        """
+        io = self._io
+        if self.mash_temperature - io.read_temperature() > 0.1:
+            return self.Heating
 
 
 # vim:sw=4:et:ai
