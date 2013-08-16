@@ -33,3 +33,12 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# PyCharm / IntelliJ
+*.iml
+*.ipr
+*.iws
+
+# Application log
+session.log
+
