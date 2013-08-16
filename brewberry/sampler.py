@@ -25,7 +25,7 @@ Sample.as_dict = _sample_as_dict
 
 def sample(io, controller):
     return Sample(datetime.utcfromtimestamp(io.read_time()), io.read_temperature(), io.read_heater(),
-                  controller.state(), controller.mash_temperature)
+                  str(controller), controller.mash_temperature)
 
 
 class Sampler(object):

@@ -24,25 +24,27 @@ class Controller(object):
     def __init__(self, io):
         self._io = io
         self.mash_temperature = 0
-        self._started = Off
-        self.act = self.Resting
+        self.act = self.Idle
 
-    def state(self):
-        if self._started:
-            return self.act.__name__
+    def __str__(self):
+        return self.act.__name__
 
     def _set_started(self, v):
-        self._started = v and On or Off
+        self.act = v and self.Resting or self.Idle
         self()
 
-    started = property(lambda s: s._started, _set_started)
+    started = property(lambda s: s.act != s.Start, _set_started)
 
     def __call__(self):
+        new_state = self.act()
+        if new_state: self.act = new_state
+
+    def Idle(self):
+        """
+        Initial (start) state. System is Idle. Heater is turned off if required.
+        """
         io = self._io
-        if self._started:
-            new_state = self.act()
-            if new_state: self.act = new_state
-        else:
+        if io.read_heater():
             io.set_heater(Off)
 
     def Heating(self):
