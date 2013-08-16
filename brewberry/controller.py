@@ -15,7 +15,7 @@ class Config(object):
         self.wait_time = 20 # seconds
 
     def time(self, dtemp):
-        return max((JOULES_1_LITRE * self.volume) / (self.power * self.efficiency), self.wait_time)
+        return max((dtemp * JOULES_1_LITRE * self.volume) / (self.power * self.efficiency), self.wait_time)
 
 
 class Controller(object):
