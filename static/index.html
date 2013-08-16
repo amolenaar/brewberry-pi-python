@@ -8,9 +8,8 @@
   <link rel="stylesheet" href="css/app.css"/>
  </head>
  <body ng-app="brewberry">
-  <div id="container">
-   <div id="logger" ng-controller="Logger">
-    <div class="log-controller">{{sample.controller}}</div>
+  <div id="container" ng-controller="Logger">
+   <div id="logger">
     <div class="log-gauge" log-gauge sample="sample" value="temperature">
     </div>
     <div class="log-chart" log-chart>
@@ -22,7 +21,7 @@
 
    <div id="controls" ng-controller="Controls">
     <div class="buttons">
-     <a ng-click="setHeater('on')">Start</a>
+     <a ng-click="setHeater('on')">{{sample.controller || "Start"}}</a>
      <a ng-click="setHeater('off')">Stop</a>
      <a ng-click="showTemperatureDialog=true">Set</a>
     </div>

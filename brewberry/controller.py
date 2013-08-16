@@ -64,12 +64,12 @@ class Controller(object):
 
         io.set_heater(On)
 
-        def WaitWhileHeating():
+        def Heating():
             t = io.read_time()
             if t >= end_time:
                 io.set_heater(Off)
                 return self.Slacking
-        return WaitWhileHeating
+        return Heating
 
     def Slacking(self):
         """
@@ -80,13 +80,13 @@ class Controller(object):
         io = self._io
         end_time = io.read_time() + 30
         self.sliding_window = []
-        def WaitWhileSlacking():
+        def Slacking():
             t = io.read_time()
             s = self.sliding_window
             s.append(io.read_temperature())
             if t > end_time and len(s) > 10 and abs(s[-10] - s[-1]) < 0.05:
                 return self.Resting
-        return WaitWhileSlacking
+        return Slacking
 
 
     def Resting(self):
