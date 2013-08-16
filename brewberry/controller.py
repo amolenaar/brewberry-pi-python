@@ -8,11 +8,11 @@ JOULES_1_LITRE = 4186
 
 class Config(object):
 
-    def __init__(self, power = 2000, efficiency = .75, volume = 17):
+    def __init__(self, power = 2000, efficiency = .80, volume = 17):
         self.power = power # Watts
         self.efficiency = efficiency
         self.volume = volume # litres
-        self.wait_time = 30 # seconds
+        self.wait_time = 20 # seconds
 
     def time(self, dtemp):
         return max((JOULES_1_LITRE * self.volume) / (self.power * self.efficiency), self.wait_time)
