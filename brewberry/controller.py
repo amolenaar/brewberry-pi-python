@@ -58,14 +58,15 @@ class Controller(object):
             return self.Resting
 
         watts = (self.config.power * self.config.efficiency)
-        self.start_time = io.read_time()
-        self.end_time = self.start_time + self.config.volume * dT * 4186 / watts
+        start_time = io.read_time()
+        # Heat for at least 30 seconds
+        end_time = start_time + max(self.config.volume * dT * 4186 / watts, 30)
 
         io.set_heater(On)
 
         def WaitWhileHeating():
             t = io.read_time()
-            if t >= self.end_time:
+            if t >= end_time:
                 io.set_heater(Off)
                 return self.Slacking
         return WaitWhileHeating
@@ -77,11 +78,13 @@ class Controller(object):
         . If dtemp < y go to next stage
         """
         io = self._io
+        end_time = io.read_time() + 30
         self.sliding_window = []
         def WaitWhileSlacking():
+            t = io.read_time()
             s = self.sliding_window
             s.append(io.read_temperature())
-            if len(s) > 10 and abs(s[-10] - s[-1]) < 0.05:
+            if t > end_time and len(s) > 10 and abs(s[-10] - s[-1]) < 0.05:
                 return self.Resting
         return WaitWhileSlacking
 

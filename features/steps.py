@@ -62,6 +62,7 @@ def and_the_heating_is_on_off(step, s):
 def when_the_fluid_is_xx_degrees(step, degrees):
     fakeio.temperature = float(degrees)
     world.controller()
+    fakeio.time += 30
     world.controller()
 
 @step(u'Then the heating should be turned on')
