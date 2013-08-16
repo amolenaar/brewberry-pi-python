@@ -27,6 +27,10 @@ class Controller(object):
         self._started = Off
         self.act = self.Resting
 
+    def state(self):
+        if self._started:
+            return self.act.__name__
+
     def _set_started(self, v):
         self._started = v and On or Off
         self()
@@ -59,12 +63,12 @@ class Controller(object):
 
         io.set_heater(On)
 
-        def Wait():
+        def WaitWhileHeating():
             t = io.read_time().toordinal()
             if t >= self.end_time:
                 io.set_heater(Off)
                 return self.Slacking
-        return Wait
+        return WaitWhileHeating
 
     def Slacking(self):
         """
@@ -74,12 +78,12 @@ class Controller(object):
         """
         io = self._io
         self.sliding_window = []
-        def Wait():
+        def WaitWhileSlacking():
             s = self.sliding_window
             s.append(io.read_temperature())
             if len(s) > 10 and abs(s[-10] - s[-1]) < 0.05:
                 return self.Resting
-        return Wait
+        return WaitWhileSlacking
 
 
     def Resting(self):
@@ -88,7 +92,6 @@ class Controller(object):
         . If t_mash < y-d degrees, go to next stage
         """
         io = self._io
-        io.set_heater(Off)
         if self.mash_temperature - io.read_temperature() > 0.1:
             return self.Heating
 
