@@ -58,13 +58,13 @@ class Controller(object):
             return self.Resting
 
         watts = (self.config.power * self.config.efficiency)
-        self.start_time = io.read_time().toordinal()
+        self.start_time = io.read_time()
         self.end_time = self.start_time + self.config.volume * dT * 4186 / watts
 
         io.set_heater(On)
 
         def WaitWhileHeating():
-            t = io.read_time().toordinal()
+            t = io.read_time()
             if t >= self.end_time:
                 io.set_heater(Off)
                 return self.Slacking

@@ -14,7 +14,7 @@ heater = Off
 def read_time():
     global time
     try:
-        return datetime.datetime.utcfromtimestamp(time)
+        return time
     finally:
         if not static_time:
             time += INTERVAL / 1000.

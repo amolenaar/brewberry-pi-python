@@ -36,7 +36,7 @@ _heater = Off
 ## Interface methods:
 
 def read_time():
-    return datetime.datetime.fromtimestamp(time.time())
+    return time.time()
 
 @memoize(timeout=2)
 def read_temperature():

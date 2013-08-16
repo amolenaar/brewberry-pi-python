@@ -8,6 +8,7 @@
 #
 
 from collections import namedtuple
+from datetime import datetime
 
 Sample = namedtuple('Sample', ['time', 'temperature', 'heater', 'controller', 'mash_temperature'])
 
@@ -23,7 +24,7 @@ def _sample_as_dict(self):
 Sample.as_dict = _sample_as_dict
 
 def sample(io, controller):
-    return Sample(io.read_time(), io.read_temperature(), io.read_heater(),
+    return Sample(datetime.utcfromtimestamp(io.read_time()), io.read_temperature(), io.read_heater(),
                   controller.state(), controller.mash_temperature)
 
 
