@@ -62,6 +62,7 @@ def and_the_heating_is_on_off(step, s):
 def when_the_fluid_is_xx_degrees(step, degrees):
     fakeio.temperature = float(degrees)
     world.controller()
+    world.controller()
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
@@ -81,27 +82,28 @@ def given_controller_and_heater_turned_on(step):
 @step(u'When I turn off the controller')
 def when_i_turn_off_the_controller(step):
     world.controller.started = False
+    world.controller()
     
 # Heat calculation:
 
 @step(u'Given the heater has a performance of (\d+)%')
-def given_the_heater_has_a_performance_of_50(step, pct):
+def given_the_heater_has_a_performance_of_xx(step, pct):
     world.controller.config.performance = int(pct) / 100.
 
 @step(u'And the kettle is (\d+) Watts')
-def and_the_kettle_is_2000_watts(step, P):
+def and_the_kettle_is_xx_watts(step, P):
     world.controller.config.watts = int(P)
 
-@step(u'And the vessle contains (\d+) litres of fluid')
-def and_the_vessle_contains_17_litres_of_fluid(step, ltr):
-    world.controller.config.litres = int(ltr)
+@step(u'And the vessel contains (\d+) litres of fluid')
+def and_the_vessel_contains_xx_litres_of_fluid(step, ltr):
+    world.controller.config.volume = int(ltr)
 
 @step(u'When the temperature difference is (\d+) degrees')
-def when_the_temperature_difference_is_2_degrees(step, deg):
+def when_the_temperature_difference_is_xx_degrees(step, deg):
     world.dtemp = int(deg)
 
 @step(u'Then the heater should be turned on for (\d+) seconds')
-def then_the_heater_should_be_turned_on_for_71_seconds(step, t):
+def then_the_heater_should_be_turned_on_for_xx_seconds(step, t):
     timer = world.controller.config.time(world.dtemp)
     assert int(timer) == int(t), timer
 

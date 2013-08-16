@@ -21,6 +21,6 @@ Feature: Temperature control
   Scenario: Given the temperature should rise 2 degrees, how long should the heater be tuened on
     Given the heater has a performance of 50%
     And the kettle is 2000 Watts
-    And the vessle contains 17 litres of fluid
+    And the vessel contains 17 litres of fluid
     When the temperature difference is 2 degrees
-    Then the heater should be turned on for 71 seconds
+    Then the heater should be turned on for 47 seconds
