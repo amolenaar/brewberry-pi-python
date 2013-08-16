@@ -13,7 +13,8 @@ def different(sample, prev_sample):
     return not prev_sample or \
            sample.time >= prev_sample.time + TIME_DELTA or \
            abs(sample.temperature - prev_sample.temperature) >= TEMPERATURE_DELTA or \
-           sample.heater != prev_sample.heater
+           sample.heater != prev_sample.heater or \
+           sample.controller != prev_sample.controller
 
 class Logger(object):
     def __init__(self, sampler, appender):
