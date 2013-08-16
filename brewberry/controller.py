@@ -12,10 +12,10 @@ class Config(object):
         self.power = power # Watts
         self.efficiency = efficiency
         self.volume = volume # litres
-        self.slack = 120 # seconds
+        self.wait_time = 30 # seconds
 
     def time(self, dtemp):
-        return (JOULES_1_LITRE * self.volume) / (self.power * self.efficiency)
+        return max((JOULES_1_LITRE * self.volume) / (self.power * self.efficiency), self.wait_time)
 
 
 class Controller(object):
@@ -39,6 +39,8 @@ class Controller(object):
         new_state = self.act()
         if new_state: self.act = new_state
 
+    ## The state machine:
+
     def Idle(self):
         """
         Initial (start) state. System is Idle. Heater is turned off if required.
@@ -51,18 +53,15 @@ class Controller(object):
         """
         . calculate time to heat
         . Heat as long as the timer has not elapsed
+        . Heating is done for at least 30 seconds.
         """
         io = self._io
-        temp = io.read_temperature()
-        dT = (self.mash_temperature - temp)
+        dT = self.mash_temperature - io.read_temperature()
 
-        if dT < 0:
+        if dT <= 0:
             return self.Resting
 
-        watts = (self.config.power * self.config.efficiency)
-        start_time = io.read_time()
-        # Heat for at least 30 seconds
-        end_time = start_time + max(self.config.volume * dT * 4186 / watts, 30)
+        end_time = io.read_time() + self.config.time(dT)
 
         io.set_heater(On)
 
@@ -78,15 +77,20 @@ class Controller(object):
         . Keep track of x last temperatures
         . Define dtemp over x temperature readings
         . If dtemp < y go to next stage
+        . Stay in this state for at least 30 seconds.
         """
         io = self._io
-        end_time = io.read_time() + 30
-        self.sliding_window = []
+        if io.read_heater():
+            io.set_heater(Off)
+
+        end_time = io.read_time() + self.config.wait_time
+        sliding_window = []
         def Slacking():
             t = io.read_time()
-            s = self.sliding_window
-            s.append(io.read_temperature())
-            if t > end_time and len(s) > 10 and abs(s[-10] - s[-1]) < 0.05:
+            sliding_window.append(io.read_temperature())
+            if t > end_time and \
+                            len(sliding_window) > 10 and \
+                            abs(sliding_window[-10] - sliding_window[-1]) < 0.05:
                 return self.Resting
         return Slacking
 
@@ -97,6 +101,9 @@ class Controller(object):
         . If t_mash < y-d degrees, go to next stage
         """
         io = self._io
+        if io.read_heater():
+            io.set_heater(Off)
+
         if self.mash_temperature - io.read_temperature() > 0.1:
             return self.Heating
 
