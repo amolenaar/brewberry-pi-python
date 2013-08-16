@@ -33,7 +33,7 @@ class Controller(object):
         self.act = v and self.Resting or self.Idle
         self()
 
-    started = property(lambda s: s.act != s.Start, _set_started)
+    started = property(lambda s: s.act != s.Idle, _set_started)
 
     def __call__(self):
         new_state = self.act()
