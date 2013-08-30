@@ -23,4 +23,4 @@ Feature: Temperature control
     And the kettle is 2000 Watts
     And the vessel contains 17 litres of fluid
     When the temperature difference is 2 degrees
-    Then the heater should be turned on for 47 seconds
+    Then the heater should be turned on for 88 seconds
