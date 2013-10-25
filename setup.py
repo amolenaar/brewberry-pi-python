@@ -1,5 +1,5 @@
 
-from distutils.setup import setup
+from distutils.core import setup
 
 VERSION='0.1'
 
