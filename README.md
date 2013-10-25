@@ -19,3 +19,8 @@ To start the application, from this directory execute:
 
 The --fake option can be given to start the fake (non raspberry) io driver.
 
+To start the application at boot time, add the following lines to /etc/rc.local:
+
+    echo "Starting Brewberry-PI"
+    (cd /home/pi/brewberry-pi && /usr/bin/python -m brewberry; ) &
+
