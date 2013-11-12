@@ -68,7 +68,6 @@ class Controller(object):
         def Heating():
             t = io.read_time()
             if t >= end_time:
-                io.set_heater(Off)
                 return self.Slacking
         return Heating
 
@@ -80,8 +79,7 @@ class Controller(object):
         . Stay in this state for at least 30 seconds.
         """
         io = self._io
-        if io.read_heater():
-            io.set_heater(Off)
+        io.set_heater(Off)
 
         end_time = io.read_time() + self.config.wait_time
         sliding_window = []
