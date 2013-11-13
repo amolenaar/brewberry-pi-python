@@ -1,49 +1,99 @@
 'use strict';
 
-angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
-    .controller('Logger', function ($scope, $http, feed) {
-        function normalizeSample(sample) {
-            sample.time = Date.parse(sample.time);
-            sample.heater = sample.heater ? 1 : 0;
-            return sample;
-        }
+function Logger(feed) {
+    var self = this;
 
-        var since = new Date (Date.now() - 3600*1000).toISOString();
-        console.log('Fetching data since', since);
-        $.get('/logger/history',
-            { 'since': since },
-            function(data, status) {
-                //provide data to charts
-                data = $.map(data, normalizeSample);
-                $scope.chartData = $.makeArray(data);
-                $scope.$digest();
-                // Hook up feed:
-                function callback(sample) {
-                    if (sample) {
-                        normalizeSample(sample);
-                        console.log('New sample', sample);
-                        $scope.sample = sample;
-                        $scope.$digest();
-                    }
-                    $.get('/logger/feed', callback);
-                };
-                callback();
-            }, 'json');
-    })
+    function normalizeSample(sample) {
+        sample.time = Date.parse(sample.time);
+        sample.heater = sample.heater ? 1 : 0;
+        return sample;
+    }
 
-    .controller('Controls', function ($scope, $http) {
-        $scope.setHeater = function (power) {
-            $.post('/controller', { 'set': power });
+    var since = new Date (Date.now() - 3600*1000).toISOString();
+    console.log('Fetching data since', since);
+    function callback(sample) {
+        if (sample) {
+            normalizeSample(sample);
+            console.log('New sample', sample);
+            self.trigger('sample', sample);
         }
+        $.get('/logger/feed', callback);
+    }
 
-        $scope.showTemperatureDialog = false;
+    $.get('/logger/history',
+        { 'since': since },
+        function(data, status) {
+            // Provide data to charts
+            data = $.map(data, normalizeSample);
+            self.trigger('samples', data);
 
-        $scope.cancelDialog = function () {
-            $scope.showTemperatureDialog = false;
-        }
-        $scope.setTemperature = function (t) {
-            $.post('/temperature', { 'set': t });
-            $scope.showTemperatureDialog = false;
-        }
+            $.get('/logger/feed', callback);
+        }, 'json');
+
+    $.observable(self);
+}
+
+function Controls() {
+    var self = this;
+
+    function setHeater(power) {
+        $.ajax('/controller', {
+                data: JSON.stringify({ 'set': power }),
+                contentType: 'application/json',
+                type: 'POST'
+            });
+    };
+
+    this.turnOn = function () {
+        setHeater('on');
+    };
+
+    this.turnOff = function () {
+        setHeater('off');
+    };
+
+    this.setTemperature = function (t) {
+        $.post('/temperature', JSON.stringify({ 'set': t }));
+    };
+}
+
+$(function () {
+
+    var logger = new Logger(feed),
+        controls = new Controls();
+    
+    var chart = logChart($('#log-chart'));
+    
+    addSeries(chart, logger, {
+        'name': 'Heater',
+        'type': 'switch',
+        'x': 'time',
+        'y': 'heater',
+        'color': '#DF5353' });
+    addSeries(chart, logger, {
+        'name': 'Mash temperature',
+        'type': 'temperature',
+        'x': 'time',
+        'y': 'mash-temperature',
+        'color': '#DDDF0D' });
+    addSeries(chart, logger, {
+        'name': 'Temperature',
+        'type': 'temperature',
+        'x': 'time',
+        'y': 'temperature',
+        'color': '#0000BF' });
+
+    logger.on('sample', function (sample) {
+        $('#turn-on').text(sample.controller);
     });
+
+    $('#turn-on').click(function () {
+        controls.turnOn();
+        $(this).text('...');
+    });
+    $('#turn-off').click(function () {
+        controls.turnOff();
+        $('#turn-on').text('...');
+    });
+});
 // vim:sw=4:et:ai

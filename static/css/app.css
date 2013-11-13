@@ -31,6 +31,10 @@
   height: 15%;
 }
 
+.dialog {
+  display: none;
+}
+
 .buttons {
   display: table;
   width: 100%;

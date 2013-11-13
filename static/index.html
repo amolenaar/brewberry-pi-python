@@ -7,42 +7,44 @@
    <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="css/app.css"/>
  </head>
- <body ng-app="brewberry">
-  <div id="container" ng-controller="Logger">
+ <body>
+  <div id="container">
    <div id="logger">
+<!--
     <div class="log-gauge" log-gauge sample="sample" value="temperature">
     </div>
-    <div class="log-chart" log-chart>
+-->
+    <div id="log-chart">
       <series name="Heater" sample="sample" type="switch" x="time" y="heater" color="#DF5353"></series>
       <series name="Mash temperature" sample="sample" type="temperature" x="time" y="mash-temperature" color="#DDDF0D"></series>
       <series name="Temperature" sample="sample" type="temperature" x="time" y="temperature" color="#0000BF"></series>
     </div>
    </div>
 
-   <div id="controls" ng-controller="Controls">
+   <div id="controls">
     <div class="buttons">
-     <a ng-click="setHeater('on')">{{sample.controller || "Start"}}</a>
-     <a ng-click="setHeater('off')">Stop</a>
-     <a ng-click="showTemperatureDialog=true">Set</a>
+     <a id="turn-on">Start</a>
+     <a id="turn-off">Stop</a>
+     <a id="showTemperatureDialog">Set</a>
     </div>
-    <div class="dialog" ng-cloak ng-show="showTemperatureDialog">
-     <form ng-submit="setTemperature(temperature)">
+    <div class="dialog" id="temperatureDialog">
+     <form>
       <div class="content">
        <label>Set temperature (&deg;C):</label>
-       <input type="number" ng-model="temperature" />
+       <input type="number" name="temperature" />
       </div>
       <div class="buttons">
-       <a ng-click="cancelDialog()">Cancel</a>
-       <a type="submit" ng-click="setTemperature(temperature)">OK</a>
+       <a class="cancel">Cancel</a>
+       <a class="submit">OK</a>
       </div>
      </form>
     </div>
    </div>
 
   <script src="js/jquery.js"></script>
+  <script src="js/jquery.riot.js"></script>
   <script src="js/highcharts.js"></script>
   <script src="js/highcharts-more.js"></script>
-  <script src="js/angular.js"></script>
   <script src="js/brewberry-directive.js"></script>
   <script src="js/brewberry-service.js"></script>
   <script src="js/brewberry.js"></script> 
