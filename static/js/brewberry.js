@@ -5,38 +5,35 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
         function normalizeSample(sample) {
             sample.time = Date.parse(sample.time);
             sample.heater = sample.heater ? 1 : 0;
+            return sample;
         }
 
         var since = new Date (Date.now() - 3600*1000).toISOString();
         console.log('Fetching data since', since);
-        $http.get('/logger/history', {
-            params: { 'since': since }
-        }).success(function(data, status) {
-            //provide data to charts
-            console.log(data);
-            data.forEach(normalizeSample);
-            $scope.chartData = data;
-
-            // Hook up feed:
-            function callback(sample) {
-                if (sample) {
-                    normalizeSample(sample);
-                    console.log('New sample', sample);
-                    $scope.sample = sample;
-                }
-                $http.get('/logger/feed').success(callback);
-            };
-            callback();
-        }).error(function (data) {
-            // Try again, and again and again...
-            $http.get('/logger/feed').success(callback);
-        });
-
+        $.get('/logger/history',
+            { 'since': since },
+            function(data, status) {
+                //provide data to charts
+                data = $.map(data, normalizeSample);
+                $scope.chartData = $.makeArray(data);
+                $scope.$digest();
+                // Hook up feed:
+                function callback(sample) {
+                    if (sample) {
+                        normalizeSample(sample);
+                        console.log('New sample', sample);
+                        $scope.sample = sample;
+                        $scope.$digest();
+                    }
+                    $.get('/logger/feed', callback);
+                };
+                callback();
+            }, 'json');
     })
 
     .controller('Controls', function ($scope, $http) {
         $scope.setHeater = function (power) {
-            $http.post('/controller', { 'set': power });
+            $.post('/controller', { 'set': power });
         }
 
         $scope.showTemperatureDialog = false;
@@ -45,7 +42,7 @@ angular.module('brewberry', ['brewberry.directive', 'brewberry.service'])
             $scope.showTemperatureDialog = false;
         }
         $scope.setTemperature = function (t) {
-            $http.post('/temperature', { 'set': t });
+            $.post('/temperature', { 'set': t });
             $scope.showTemperatureDialog = false;
         }
     });
