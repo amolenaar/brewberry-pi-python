@@ -38,7 +38,7 @@ console.log('render to', element.get(0));
                 }
             },
             title: {
-                text: 'Temperature',
+                text: null,
                 style: {
                     color: '#89A54E'
                 }
@@ -69,6 +69,7 @@ console.log('render to', element.get(0));
             max: 1
         }],
         tooltip: {
+            enabled: false,
             shared: true
         },
         plotOptions: {
@@ -90,7 +91,7 @@ function addSeries(chart, logger, attrs) {
         color: attrs.color,
         yAxis: attrs.type === "switch" ? 1 : 0,
         tooltip: {
-            valueSuffix: attrs.type === "switch" ? "" : " °C"
+            enabled: false
         },
         data: []
     });
