@@ -17,7 +17,6 @@ function Logger(feed) {
             console.log('New sample', sample);
             self.trigger('sample', sample);
         }
-        $.get('/logger/feed', callback);
     }
 
     $.get('/logger/history',
@@ -27,7 +26,7 @@ function Logger(feed) {
             data = $.map(data, normalizeSample);
             self.trigger('samples', data);
 
-            $.get('/logger/feed', callback);
+            feed(callback)
         }, 'json');
 
     $.observable(self);
