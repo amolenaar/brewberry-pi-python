@@ -12,9 +12,9 @@ function Logger(feed) {
     var since = new Date (Date.now() - 3600*1000).toISOString();
     console.log('Fetching data since', since);
     function callback(sample) {
+        console.log('sample', sample);
         if (sample) {
             normalizeSample(sample);
-            console.log('New sample', sample);
             self.trigger('sample', sample);
         }
     }

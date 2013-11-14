@@ -10,7 +10,6 @@ function feed(callback) {
                 client = new XMLHttpRequest();
                 client.open("GET", "/logger/feed", true);
                 client.onreadystatechange = function() {
-                    console.log('state:', this.readyState);
                     if (this.readyState === 3 || this.readyState === 4) {
                         var text = this.responseText;
                         if (text.length <= offset) return;
@@ -31,7 +30,7 @@ function feed(callback) {
                 client.send();
             }
         }
-    })(), 2000);
+    })(), 300);
 };
 
 // vim: sw=4:et:ai

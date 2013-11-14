@@ -11,7 +11,6 @@ console.log('render to', element.get(0));
     return new Highcharts.Chart({
         chart: {
             renderTo: element.get(0),
-            zoomType: 'xy',
             type: 'area',
             backgroundColor: 'transparent',
             animation: Highcharts.svg // don't animate in old IE
@@ -106,7 +105,6 @@ function addSeries(chart, logger, attrs) {
     var y = attrs.y;
     
     logger.on("samples", function (samples) {
-        console.log('samples: ', samples);
         if (samples) {
             var newData = [];
             $(samples).each(function (i, e) {
@@ -117,12 +115,10 @@ function addSeries(chart, logger, attrs) {
     });
     logger.on('sample', function(sample) {
         if (sample) {
-            console.log('Update sample for', attrs.name, sample[y]);
             dropOldData(series, sample[x]);
             series.addPoint([sample[x], sample[y]], true, false);
         }
     });
-    console.log('Added series for ', attrs.name );
 }
 
 
