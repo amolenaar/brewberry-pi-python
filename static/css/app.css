@@ -23,6 +23,16 @@
   position: absolute;
   z-index: 99;
 }
+
+#temperature {
+  font-weight: bold;
+  color: #bbb;
+  font-size: 600%;
+  position: absolute;
+  margin: 0;
+  padding: 0;
+}
+
 #logger h1 {
   float: right;
 }

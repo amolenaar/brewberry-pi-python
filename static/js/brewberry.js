@@ -93,7 +93,8 @@ $(function () {
         'color': '#0000BF' });
 
     /* Controls */
-    var turnOnButton = $('#turn-on'),
+    var temperatureDisplay = $('#temperature'),
+        turnOnButton = $('#turn-on'),
         turnOffButton = $('#turn-off'),
         temperatureDialogButton = $('#show-temperature-dialog'),
         temperatureDialog = $('#temperature-dialog'),
@@ -103,6 +104,14 @@ $(function () {
 
     logger.onSample(function (sample) {
         turnOnButton.text(sample.controller);
+    });
+
+    logger.onSample(function (sample) {
+        turnOnButton.text(sample.controller);
+    });
+
+    logger.onSample(function (sample) {
+        temperatureDisplay.text(sample.temperature.toFixed(2));
     });
 
     turnOnButton.click(function () {
