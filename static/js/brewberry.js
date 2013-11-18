@@ -107,10 +107,6 @@ $(function () {
     });
 
     logger.onSample(function (sample) {
-        turnOnButton.text(sample.controller);
-    });
-
-    logger.onSample(function (sample) {
         temperatureDisplay.text(sample.temperature.toFixed(2));
     });
 
