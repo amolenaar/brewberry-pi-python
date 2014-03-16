@@ -51,12 +51,14 @@ def setup(io, sampler, controller, mainloop):
                 return
             self.set_header('Content-Type', 'text/event-stream')
             self.set_header('Cache-Control', 'no-cache, no-store')
-            self.last_event_id = self.request.headers.get('Last-Event-ID')
+            last_event_id = self.request.headers.get('Last-Event-ID')
+            print 'last event: ', last_event_id
+            # TODO: send out events since last_event_id
             sampler.observers.add(self)
 
         def __call__(self, sample):
             s = sample.as_dict()
-            self.write('id: %s\n' % sample.time)
+            self.write('id: %s\n' % s['time'])
             self.write('event: sample\n')
             self.write('data: %s\n\n' % json_encode(s))
             self.flush()
