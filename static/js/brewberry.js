@@ -1,6 +1,6 @@
 'use strict';
 
-function Logger(feed) {
+function Logger() {
     var self = this;
 
     function normalizeSample(sample) {
@@ -9,25 +9,17 @@ function Logger(feed) {
         return sample;
     }
 
-    var since = new Date (Date.now() - 3600*1000).toISOString();
-    console.log('Fetching data since', since);
-    function callback(sample) {
-        console.log('sample', sample);
+    var eventSource = new EventSource("logger");
+
+    eventSource.addEventListener('sample', function(event) {
+
+        var sample = JSON.parse(event.data);
         if (sample) {
             normalizeSample(sample);
             self.trigger('sample', sample);
         }
-    }
 
-    $.get('/logger/history',
-        { 'since': since },
-        function(data, status) {
-            // Provide data to charts
-            data = $.map(data, normalizeSample);
-            self.trigger('samples', data);
-
-            feed(callback)
-        }, 'json');
+    }, false);
 
     $.observable(self);
 
@@ -67,7 +59,7 @@ function Controls() {
 // Presenter
 $(function () {
 
-    var logger = new Logger(feed),
+    var logger = new Logger(),
         controls = new Controls();
     
     /* Chart */

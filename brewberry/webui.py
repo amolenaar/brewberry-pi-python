@@ -12,7 +12,6 @@ class JsonMixin(object):
         if "application/json" in self.request.headers.get("Content-Type"):
             self.get_json = json_decode(self.request.body).get
 
-
 def setup(io, sampler, controller, mainloop):
 
     # TODO: put temp. dialog on top of screen instead of dialog in the middle.
@@ -45,13 +44,23 @@ def setup(io, sampler, controller, mainloop):
 
         @tornado.web.asynchronous
         def get(self):
-            self.set_header('Content-Type', 'application/json')
+            if not 'text/event-stream' in self.request.headers.get("Accept"):
+                self.write('Expected an event stream')
+                self.flush()
+                self.finish()
+                return
+            self.set_header('Content-Type', 'text/event-stream')
+            self.set_header('Cache-Control', 'no-cache, no-store')
+            self.last_event_id = self.request.headers.get('Last-Event-ID')
             sampler.observers.add(self)
 
         def __call__(self, sample):
-            self.write(sample.as_dict())
-            self.finish()
-            sampler.observers.remove(self)
+            s = sample.as_dict()
+            self.write('id: %s\n' % sample.time)
+            self.write('event: sample\n')
+            self.write('data: %s\n\n' % json_encode(s))
+            self.flush()
+            #sampler.observers.remove(self)
 
         def on_connection_close(self):
             print 'Connection closed', id(self)
@@ -72,7 +81,7 @@ def setup(io, sampler, controller, mainloop):
             self.write(json_encode(samples))
 
     application = tornado.web.Application([
-        (r'/logger/feed', LoggerHandler),
+        (r'/logger', LoggerHandler),
         (r'/logger/history', HistoryHandler),
         (r'/controller', ControllerHandler),
         (r'/temperature', TemperatureHandler),
