@@ -14,7 +14,7 @@ Sample = namedtuple('Sample', ['time', 'temperature', 'heater', 'controller', 'm
 
 def _sample_as_dict(self):
     return {
-        'time': self.time.isoformat(),
+        'time': self.time.isoformat()[:19],
         'temperature': self.temperature,
         'heater': self.heater,
         'controller': self.controller,
