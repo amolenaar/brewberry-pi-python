@@ -53,6 +53,8 @@ def setup(io, sampler, controller, mainloop):
             self.set_header('Cache-Control', 'no-cache, no-store')
             last_event_id = self.request.headers.get('Last-Event-ID')
             print 'last event: ', last_event_id
+            if last_event_id:
+                self.send_old_samples(last_event_id)
             # TODO: send out events since last_event_id
             sampler.observers.add(self)
 
@@ -62,16 +64,12 @@ def setup(io, sampler, controller, mainloop):
             self.write('event: sample\n')
             self.write('data: %s\n\n' % json_encode(s))
             self.flush()
-            #sampler.observers.remove(self)
 
         def on_connection_close(self):
             print 'Connection closed', id(self)
             sampler.observers.remove(self)
 
-    class HistoryHandler(tornado.web.RequestHandler):
-
-        def get(self):
-            since = self.get_argument('since')
+        def send_old_samples(self, since):
             # TODO: assert: matches: \d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d
             with open('session.log') as f:
                 samples = []
@@ -79,12 +77,13 @@ def setup(io, sampler, controller, mainloop):
                     sample = json_decode(line)
                     # String compare is sufficient
                     if sample['time'] > since:
-                        samples.append(sample)
-            self.write(json_encode(samples))
+                        self.write('id: %s\n' % sample['time'])
+                        self.write('event: sample\n')
+                        self.write('data: %s\n\n' % line)
+                        self.flush()
 
     application = tornado.web.Application([
         (r'/logger', LoggerHandler),
-        (r'/logger/history', HistoryHandler),
         (r'/controller', ControllerHandler),
         (r'/temperature', TemperatureHandler),
         (r'/(..*)', tornado.web.StaticFileHandler, {'path': 'static'}),
