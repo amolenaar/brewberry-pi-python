@@ -1,4 +1,4 @@
-#container, .dialog {
+#container {
   position: absolute;
   right: 0;
   left: 0;
@@ -7,21 +7,34 @@
   font-family: "Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
 }
 
+#controls input {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0;
+  margin: 0 10px 0 0;
+  border: none;
+  border-bottom: 1px solid #d8d8d8;
+  border-right: 1px solid #d8d8d8;
+  background-color: #f8f8f8;
+  line-height: 59px;
+  width: calc(33.33333% - 14px);
+  outline: 0;
+  box-shadow: 0 0 6px gray;
+}
+
+#controls input:first-child {
+  //border-left: 1px solid gray;
+  margin-left: 10px;
+}
+
+#controls input:active {
+  box-shadow: none;
+}
+
 #logger {
-  height: 85%;
+  height: calc(100% - 60px);
   width: 100%;
-}
-
-.log-chart {
-  height: 100%;
-  width: 100%;
-}
-
-.log-gauge {
-  height: 50%;
-  width: 30%;
-  position: absolute;
-  z-index: 99;
 }
 
 #temperature {
@@ -33,59 +46,8 @@
   padding: 0;
 }
 
-#logger h1 {
-  float: right;
-}
-
-#controls {
-  height: 15%;
-}
-
-.dialog {
-  display: none;
-}
-
-.buttons {
-  display: table;
-  width: 100%;
-  text-align: center;
+#log-chart {
   height: 100%;
-}
-
-.buttons a {
-  display: table-cell;
-  text-align: center;
-  vertical-align: middle;
-  border-top: 1px solid gray;
-  width: 10%;
-  background-color: #f8f8f8;
-}
-
-.buttons a+a {
-  border-left: 1px solid gray;
-}
-
-.dialog {
-  background-color: rgba(20, 20, 0, .3);
-  z-index: 9999;
-}
-
-.dialog form {
-  position: absolute;
-  background-color: white;
-  border: 1px solid #eee;
-  margin: auto;
-  top: 1%;
-  left: 25%;
-  width: 50%;
-  border-radius: 3pt;
-}
-
-.dialog .content {
-  margin: 12pt;
-}
-
-.dialog .buttons {
-  line-height: 20pt;
+  width: 100%;
 }
 

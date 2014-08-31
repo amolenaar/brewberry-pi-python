@@ -10,31 +10,15 @@
  <body>
   <div id="container">
 
+   <div id="controls">
+    <input type="button" id="turn-on" value="Start" /><input type="button" id="turn-off" value="Stop" /><input type="number" id="set-temperature" size="4" placeholder="Temp" />
+   </div>
+
    <div id="logger">
     <div id="temperature"></div>
     <div id="log-chart"></div>
    </div>
 
-   <div id="controls">
-    <div class="buttons">
-     <a id="turn-on">Start</a>
-     <a id="turn-off">Stop</a>
-     <a id="show-temperature-dialog">Set</a>
-    </div>
-   </div>
-
-   <div class="dialog" id="temperature-dialog">
-    <form>
-     <div class="content">
-      <label>Set temperature (&deg;C):</label>
-      <input type="number" name="temperature" />
-     </div>
-     <div class="buttons">
-      <a class="cancel">Cancel</a>
-      <a class="submit">OK</a>
-     </div>
-    </form>
-   </div>
   </div>
 
   <script src="js/jquery.js"></script>

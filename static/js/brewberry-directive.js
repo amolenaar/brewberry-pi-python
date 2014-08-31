@@ -1,7 +1,6 @@
 'use strict';
 
 function logChart(element) {
-console.log('render to', element.get(0));
     Highcharts.setOptions({
         // This is for all plots, change Date axis to local timezone
         global : {

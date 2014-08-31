@@ -11,9 +11,11 @@ function Logger() {
 
     var eventSource;
 
-    setInterval(function () {
+    this.onlineCheck = function () {
         // EventSource watchdog
         if (!eventSource || eventSource.readyState === 4) {
+            if (eventSource) eventSource.close();
+
             eventSource = new EventSource("logger");
 
             eventSource.addEventListener('sample', function(event) {
@@ -26,13 +28,15 @@ function Logger() {
 
             }, false);
         }
-    }, 1000);
+    };
 
     $.observable(self);
 
     this.onSample = function (callback) {
         this.on('sample', callback);
     };
+
+    this.onlineCheck();
 }
 
 function Controls() {
@@ -95,43 +99,34 @@ $(function () {
     var temperatureDisplay = $('#temperature'),
         turnOnButton = $('#turn-on'),
         turnOffButton = $('#turn-off'),
-        temperatureDialogButton = $('#show-temperature-dialog'),
-        temperatureDialog = $('#temperature-dialog'),
-        temperatureDialogTemperatureInput = $('#temperature-dialog input[name=temperature]'),
-        temperatureDialogSubmitButton = $('#temperature-dialog .submit'),
-        temperatureDialogCancelButton = $('#temperature-dialog .cancel');
+        setTemperatureButton = $('#set-temperature');
 
     logger.onSample(function (sample) {
-        turnOnButton.text(sample.controller);
+        turnOnButton.val(sample.controller);
     });
 
     logger.onSample(function (sample) {
-        temperatureDisplay.text(sample.temperature.toFixed(2));
+        temperatureDisplay.val(sample.temperature.toFixed(2));
     });
 
     turnOnButton.click(function () {
         controls.turnOn();
-        turnOnButton.text('...');
+        // Check logger, re-initiate if needed.
+        // logger.onlineCheck();
+        turnOnButton.val('...');
     });
+
     turnOffButton.click(function () {
         controls.turnOff();
-        turnOnButton.text('...');
+        turnOnButton.val('...');
     });
 
-    temperatureDialogButton.click(function () {
-        temperatureDialog.show();
-    });
-
-    temperatureDialogCancelButton.click(function () {
-        temperatureDialog.hide();
-    });
-
-    temperatureDialogSubmitButton.click(function () {
-        var temperature = temperatureDialogTemperatureInput.val();
+    setTemperatureButton.change(function () {
+        var temperature = setTemperatureButton.val();
         if (temperature) {
             controls.setTemperature(parseInt(temperature));
         }
-        temperatureDialog.hide();
+        turnOnButton.focus();
     });
 });
 // vim:sw=4:et:ai
