@@ -9,17 +9,24 @@ function Logger() {
         return sample;
     }
 
-    var eventSource = new EventSource("logger");
+    var eventSource;
 
-    eventSource.addEventListener('sample', function(event) {
+    setInterval(function () {
+        // EventSource watchdog
+        if (!eventSource || eventSource.readyState === 4) {
+            eventSource = new EventSource("logger");
 
-        var sample = JSON.parse(event.data);
-        if (sample) {
-            normalizeSample(sample);
-            self.trigger('sample', sample);
+            eventSource.addEventListener('sample', function(event) {
+
+                var sample = JSON.parse(event.data);
+                if (sample) {
+                    normalizeSample(sample);
+                    self.trigger('sample', sample);
+                }
+
+            }, false);
         }
-
-    }, false);
+    }, 1000);
 
     $.observable(self);
 
