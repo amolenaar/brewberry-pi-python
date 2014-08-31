@@ -121,12 +121,20 @@ $(function () {
         turnOnButton.val('...');
     });
 
-    setTemperatureButton.change(function () {
+    setTemperatureButton.change(function (event) {
         var temperature = setTemperatureButton.val();
         if (temperature) {
             controls.setTemperature(parseInt(temperature));
         }
-        turnOnButton.focus();
+        return false;
     });
+});
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
 });
 // vim:sw=4:et:ai
