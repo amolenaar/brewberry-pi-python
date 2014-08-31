@@ -3,24 +3,25 @@
  <head>
    <title>Brewgear &pi;</title>
    <meta charset="utf-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <meta name="viewport" content="width=device-width, height=device-height,  initial-scale=1.0, user-scalable=no;user-scalable=0;"/>
    <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="stylesheet" href="css/app.css"/>
  </head>
  <body>
   <div id="container">
 
-   <form id="controls">
+   <div id="controls">
     <input type="number" id="set-temperature" size="4" placeholder="Temp" />
     <input type="button" id="turn-on" value="Start" />
     <input type="button" id="turn-off" value="Stop" />
-   </form>
+   </div>
 
    <div id="logger">
     <div id="temperature"></div>
     <div id="log-chart"></div>
    </div>
 
+   <div id="health">--:--:--</div>
   </div>
 
   <script src="js/jquery.js"></script>

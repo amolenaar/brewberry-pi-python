@@ -11,9 +11,14 @@ function Logger() {
 
     var eventSource;
 
+    this.state = function () {
+       return eventSource.readyState;
+    };
+
     this.onlineCheck = function () {
         // EventSource watchdog
-        if (!eventSource || eventSource.readyState === 4) {
+        // readyState: 0=connecting, 1=open, 2=closed
+        if (!eventSource || eventSource.readyState === 2) {
             if (eventSource) eventSource.close();
 
             eventSource = new EventSource("logger");
@@ -29,6 +34,8 @@ function Logger() {
             }, false);
         }
     };
+
+    setInterval(this.onlineCheck, 1000);
 
     $.observable(self);
 
@@ -99,7 +106,8 @@ $(function () {
     var temperatureDisplay = $('#temperature'),
         turnOnButton = $('#turn-on'),
         turnOffButton = $('#turn-off'),
-        setTemperatureButton = $('#set-temperature');
+        setTemperatureButton = $('#set-temperature'),
+        healthDisplay = $('#health');
 
     logger.onSample(function (sample) {
         turnOnButton.val(sample.controller);
@@ -107,12 +115,13 @@ $(function () {
 
     logger.onSample(function (sample) {
         temperatureDisplay.val(sample.temperature.toFixed(2));
+        healthDisplay.toggleClass('odd').text(new Date().toLocaleTimeString());
     });
 
     turnOnButton.click(function () {
         controls.turnOn();
         // Check logger, re-initiate if needed.
-        // logger.onlineCheck();
+        logger.onlineCheck();
         turnOnButton.val('...');
     });
 
@@ -129,12 +138,5 @@ $(function () {
         return false;
     });
 });
-$(document).ready(function() {
-  $(window).keydown(function(event){
-    if(event.keyCode == 13) {
-      event.preventDefault();
-      return false;
-    }
-  });
-});
+
 // vim:sw=4:et:ai
