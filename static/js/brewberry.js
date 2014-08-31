@@ -114,7 +114,7 @@ $(function () {
     });
 
     logger.onSample(function (sample) {
-        temperatureDisplay.val(sample.temperature.toFixed(2));
+        temperatureDisplay.text(sample.temperature.toFixed(2));
         healthDisplay.toggleClass('odd').text(new Date().toLocaleTimeString());
     });
 
