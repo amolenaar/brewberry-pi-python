@@ -1,7 +1,7 @@
 'use strict';
 
 function Logger() {
-    var self = this;
+    var self = riot.observable(this);
 
     function normalizeSample(sample) {
         sample.time = Date.parse(sample.time);
@@ -37,10 +37,8 @@ function Logger() {
 
     setInterval(this.onlineCheck, 1000);
 
-    $.observable(self);
-
     this.onSample = function (callback) {
-        this.on('sample', callback);
+        self.on('sample', callback);
     };
 
     this.onlineCheck();
