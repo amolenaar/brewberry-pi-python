@@ -18,7 +18,7 @@ Feature: Temperature control
     When I turn off the controller
     Then the heating should be turned off
 
-  Scenario: Given the temperature should rise 2 degrees, how long should the heater be tuened on
+  Scenario: Given the temperature should rise 2 degrees, how long should the heater be turned on
     Given the heater has a performance of 50%
     And the kettle is 2000 Watts
     And the vessel contains 17 litres of fluid
