@@ -2,7 +2,7 @@
 # IO stuff, on the Raspberry Pi.
 #
 
-HEATER_PIN = 18
+HEATER_PIN = 17
 
 import os, glob, datetime, time
 from memoize import memoize
