@@ -1,0 +1,8 @@
+#!/bin/sh
+
+/sbin/modprobe w1-gpio
+/sbin/modprobe w1-therm
+
+cd /opt/brewberry-pi
+exec /usr/bin/python -m brewberry
+
