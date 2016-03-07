@@ -7,27 +7,29 @@
   font-family: "Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
 }
 
-#controls input {
+.control {
   display: inline-block;
   text-align: center;
   vertical-align: middle;
   padding: 0;
-  margin: 0 10px 0 0;
+  margin: 0 8px 0 0;
   border: none;
   border-bottom: 1px solid #d8d8d8;
+  border-left: 1px solid #d8d8d8;
   border-right: 1px solid #d8d8d8;
+  border-radius: 0;
   background-color: #f8f8f8;
   line-height: 39px;
   width: calc(33.33333% - 18px);
   outline: 0;
-  box-shadow: 0 0 6px gray;
+  font-size: 14px;
 }
 
-#controls input:first-child {
+.control:first-child {
   margin-left: 10px;
 }
 
-#controls input:active {
+.control {
   box-shadow: none;
 }
 

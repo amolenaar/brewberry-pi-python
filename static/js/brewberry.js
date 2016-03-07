@@ -108,7 +108,7 @@ $(function () {
         healthDisplay = $("#health");
 
     logger.onSample(function (sample) {
-        turnOnButton.val(sample.controller);
+        turnOnButton.text(sample.controller);
     });
 
     logger.onSample(function (sample) {
@@ -120,12 +120,12 @@ $(function () {
         controls.turnOn();
         // Check logger, re-initiate if needed.
         logger.onlineCheck();
-        turnOnButton.val("...");
+        turnOnButton.text('...');
     });
 
     turnOffButton.click(function () {
         controls.turnOff();
-        turnOnButton.val("...");
+        turnOnButton.text('...');
     });
 
     setTemperatureButton.change(function (event) {
