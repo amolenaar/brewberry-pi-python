@@ -1,6 +1,7 @@
 
-from brewberry.actor import actor, PoisonPill
+from brewberry.actor import actor, UndeliveredMessage
 import gevent.queue
+import pytest
 
 
 @actor
@@ -9,10 +10,13 @@ def echo(message):
 
 
 class Counter(object):
-    def __init__(self): self.i = 0; self.__name__ = 'A'
-    def __call__(self, message): self.i += 1; return self.i
+    def __init__(self, name):
+        self.i = 0
+        self.__name__ = name
 
-counter = actor(Counter())
+    def __call__(self, message):
+        self.i += 1
+        return self.i
 
 
 def test_defining_an_actor_should_not_start_it():
@@ -23,18 +27,17 @@ def test_actor_function_should_return_address():
     addr = echo()
     
     assert addr.__name__ == 'address:echo'
-    addr(PoisonPill)
+    addr.kill()
 
 
-def test_poison_pill_kills_the_actor():
+def test_killed_actor_throws_exception():
     addr = echo()
-    addr.ask(PoisonPill)
-    try:
+    addr.kill()
+
+    # Allow actor to process the message:
+    gevent.sleep(0)
+    with pytest.raises(UndeliveredMessage):
         addr('should fail')
-    except ActorKilled:
-        pass # okay
-    else:
-        assert False, 'actor should have been killed'
 
 
 def test_actor_can_return_value():
@@ -45,7 +48,7 @@ def test_actor_can_return_value():
     answer = response.get()
 
     assert answer == 'Hello'
-    addr(PoisonPill)
+    addr.kill()
 
 
 def test_actor_can_return_value_via_ask():
@@ -53,7 +56,7 @@ def test_actor_can_return_value_via_ask():
     answer = addr.ask('Hello')
 
     assert answer == 'Hello'
-    addr(PoisonPill)
+    addr.kill()
 
 
 def test_actor_can_send_message_to_itself():
@@ -61,14 +64,21 @@ def test_actor_can_send_message_to_itself():
 
 
 def test_mailbox_is_tied_to_one_actor():
-    actor1 = counter()
-    actor2 = counter()
+    actor1 = actor(Counter('1'))()
+    actor2 = actor(Counter('2'))()
 
     for i in range(10):
         actor1(None)
 
-    assert actor1.ask(None) == 11
-    assert actor2.ask(None) == 1
+    assert actor1.ask('a') == 11
+    assert actor2.ask('b') == 1
+
+
+def test_send_many_messages():
+    addr = echo()
+    with pytest.raises(UndeliveredMessage):
+        for i in xrange(10000):
+            addr(i)
 
 
 # vim:sw=4:et:ai
