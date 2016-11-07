@@ -10,9 +10,8 @@ def echo(message):
 
 
 class Counter(object):
-    def __init__(self, name):
+    def __init__(self):
         self.i = 0
-        self.__name__ = name
 
     def __call__(self, message):
         self.i += 1
@@ -20,13 +19,13 @@ class Counter(object):
 
 
 def test_defining_an_actor_should_not_start_it():
-    assert echo.__name__ == 'actor:echo'
+    assert echo.__name__ == 'actor'
 
 
 def test_actor_function_should_return_address():
     addr = echo()
     
-    assert addr.__name__ == 'address:echo'
+    assert addr.__name__ == 'address'
     addr.kill()
 
 
@@ -64,11 +63,11 @@ def test_actor_can_send_message_to_itself():
 
 
 def test_mailbox_is_tied_to_one_actor():
-    actor1 = actor(Counter('1'))()
-    actor2 = actor(Counter('2'))()
+    actor1 = actor(Counter())()
+    actor2 = actor(Counter())()
 
     for i in range(10):
-        actor1(None)
+        actor1(i)
 
     assert actor1.ask('a') == 11
     assert actor2.ask('b') == 1
