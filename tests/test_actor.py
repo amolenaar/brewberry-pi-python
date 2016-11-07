@@ -4,9 +4,25 @@ import gevent.queue
 import pytest
 
 
-@actor
-def echo(message):
-    return message
+def echo(message, queue):
+    queue.put(message)
+    return echo
+
+# A two function state machine
+def ping_init():
+    return ping
+
+def ping(receive, queue, i):
+    queue.put('ping %d' % i)
+    if i == 0: return
+    receive(receive, queue, i-1)
+    return pong
+
+def pong(receive, queue, i):
+    queue.put('pong %d' % i)
+    if i == 0: return
+    receive(receive, queue, i-1)
+    return ping
 
 
 class Counter(object):
@@ -18,19 +34,16 @@ class Counter(object):
         return self.i
 
 
-def test_defining_an_actor_should_not_start_it():
-    assert echo.__name__ == 'actor'
-
 
 def test_actor_function_should_return_address():
-    addr = echo()
+    addr = actor(echo, 'Hello', gevent.queue.Queue())
     
     assert addr.__name__ == 'address'
     addr.kill()
 
 
 def test_killed_actor_throws_exception():
-    addr = echo()
+    addr = actor(echo, 'Hello', gevent.queue.Queue())
     addr.kill()
 
     # Allow actor to process the message:
@@ -41,30 +54,34 @@ def test_killed_actor_throws_exception():
 
 def test_actor_can_return_value():
     response = gevent.queue.Queue()
-    addr = echo()
-    addr('Hello', response_address=response.put)
+    echo_ref = actor(echo, 'Hello', response)
+    echo_ref('World', response)
 
-    answer = response.get()
+    assert response.get() == 'Hello'
+    assert response.get() == 'World'
 
-    assert answer == 'Hello'
-    addr.kill()
-
-
-def test_actor_can_return_value_via_ask():
-    addr = echo()
-    answer = addr.ask('Hello')
-
-    assert answer == 'Hello'
-    addr.kill()
+    echo_ref.kill()
 
 
-def test_actor_can_send_message_to_itself():
-    pass
+def test_can_change_state():
+    response = gevent.queue.Queue()
+    ping_ref = actor(ping_init)
+    ping_ref(ping_ref, response, 5)
+
+    assert response.get() == 'ping 5'
+    assert response.get() == 'pong 4'
+    assert response.get() == 'ping 3'
+    assert response.get() == 'pong 2'
+    assert response.get() == 'ping 1'
+
+    # Actor ended by itself:
+    with pytest.raises(UndeliveredMessage):
+        ping_ref.kill()
 
 
-def test_mailbox_is_tied_to_one_actor():
-    actor1 = actor(Counter())()
-    actor2 = actor(Counter())()
+def xtest_mailbox_is_tied_to_one_actor():
+    actor1 = actor(Counter())
+    actor2 = actor(Counter())
 
     for i in range(10):
         actor1(i)
@@ -74,7 +91,9 @@ def test_mailbox_is_tied_to_one_actor():
 
 
 def test_send_many_messages():
-    addr = echo()
+    def noop():
+        return noop
+    addr = actor(noop)
     with pytest.raises(UndeliveredMessage):
         for i in xrange(10000):
             addr(i)

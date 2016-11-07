@@ -10,18 +10,26 @@ Future ideas:
  * How to deal with exceptions? Recover? Dead-letter queue? Supervision?
  * How does this work with state machines? generic/singledispatch?
  * Can we achieve n:m relationship between address and actor?
+
+Erlang's spawn has the following signature:
+spawn(Module, Exported_Function, List of Arguments)
+
+So spawn(callable, *args, **kwargs) is 
 """
 
 import gevent
 import gevent.queue
 
 
-class PoisonPill(object):
+class Atom(object):
     """
-    Send this message to stop an actor.
+    A unique token.
+    """
+    def __init__(self, doc=None):
+        self.__doc__ = doc
 
-    The Killer Joke, so to speak :).
-    """
+
+PoisonPill = Atom("Send this message to stop an actor. The Killer Joke, so to speak :).")
 
 
 class UndeliveredMessage(Exception):
@@ -43,7 +51,7 @@ class NoMessage(Exception):
 
 class Mailbox(object):
     """
-    Mailbox for actors. One mailbox per actor.
+    Mailbox for actors.
 
     This mailbox defines the communication protocol and some
     functional exceptions.
@@ -53,7 +61,15 @@ class Mailbox(object):
         self._inbox = gevent.queue.Queue(maxsize)
 
     def __iter__(self):
-        return iter(self._inbox)
+        return self
+
+    def next(self):
+        if not self._inbox:
+            raise StopIteration
+        message = self.receive()
+        if message is PoisonPill:
+            raise StopIteration
+        return message
 
     def receive(self, timeout=None):
         """
@@ -66,13 +82,13 @@ class Mailbox(object):
         except (AttributeError, gevent.queue.Empty):
             raise NoMessage()
 
-    def send(self, message, response_address=None):
+    def send(self, message):
         """
         Send a message. The response_address can be used to send back (or forward)
         a response provided by the actor.
         """
         try:
-            return self._inbox.put_nowait((message, response_address))
+            return self._inbox.put_nowait(message)
         except (AttributeError, gevent.queue.Full):
             # Define strategy here: exception, dead letter queue, retry?
             raise UndeliveredMessage(message)
@@ -82,12 +98,9 @@ class Mailbox(object):
         self._inbox = None
 
 
-def actor(func):
+def actor(func, *args, **kwargs):
     """
-    actor(func) -> actor
-    actor() -> address
-
-    The decorated function should have a format `func(message)`.
+    actor(func, *ags, **kwargs) -> address
 
     The actor operator normalizes the function interface to (message, response_address=None)
 
@@ -99,60 +112,42 @@ def actor(func):
     Send a PoisonPill to stop the actor.
     """
 
-    def actor_greenlet(func, mailbox):
+    mailbox = Mailbox()
+
+    def actor_greenlet(func):
         try:
-            for message, response_address in mailbox:
-                if message is PoisonPill:
+            for args, kwargs in mailbox:
+                func = func(*args, **kwargs)
+                if not func:
                     break
-                try:
-                    response = func(message)
-                except BaseException, e:
-                    response = e
-                finally:
-                    if response_address:
-                        response_address(response)
         finally:
             # Close the mailbox along with this greenlet
             mailbox.close()
 
-    def actor():
-        mailbox = Mailbox()
-        gevent.spawn(actor_greenlet, func, mailbox)
+    gevent.spawn(actor_greenlet, func)
 
-        def address(message, response_address=None):
-            """
-            Send messages to the actor. Messages are sent to a mailbox
-            and handled some time in the future.
+    def address(*args, **kwargs):
+        """
+        Send messages to the actor. Messages are sent to a mailbox
+        and handled some time in the future.
 
-            If no actor is present, an `ActorKilled` exception is raised.
-            """
-            mailbox.send(message, response_address)
+        If no actor is present, an `ActorKilled` exception is raised.
+        """
+        mailbox.send((args, kwargs))
 
-        def ask(message, timeout=None):
-            """
-            Send message to an actor and await the response.
-            This method assumes a single response to be returned.
+    def kill():
+        """
+        Send the poison pill to the actor, terminating it.
 
-            Optionally, provide a timeout (in seconds).
-            """
-            response_mailbox = Mailbox(1)
-            address(message, response_mailbox.send)
-            return response_mailbox.receive(timeout=timeout)[0]
+        The actor logic does not have an option to do cleanup.
+        """
+        mailbox.send(PoisonPill)
 
-        def kill():
-            """
-            Send the poison pill to the actor, terminating it.
+    address.kill = kill
 
-            The actor logic does not have an option to do cleanup.
-            """
-            address(PoisonPill)
+    address(*args, **kwargs)
 
-        address.ask = ask
-        address.kill = kill
-
-        return address
-
-    return actor
+    return address
 
 
 # vim:sw=4:et:ai
