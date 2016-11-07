@@ -12,7 +12,7 @@ def a_running_system(step):
     world.log_lines = []
     world.controller = controller.Controller(fakeio)
     world.sampler = sampler.Sampler(fakeio, world.controller)
-    world.logger = logger.Logger(world.sampler, world.log_lines.append)
+    world.logger = logger.Logger(world.log_lines.append)
 
 @step(u'When a line is logged')
 def a_line_is_logged(step):

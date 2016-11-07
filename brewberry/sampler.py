@@ -25,23 +25,6 @@ Sample.as_dict = _sample_as_dict
 
 def sample(io, controller):
     return Sample(datetime.utcfromtimestamp(io.read_time()), io.read_temperature(), io.read_heater(),
-                  str(controller), controller.mash_temperature)
-
-
-class Sampler(object):
-    def __init__(self, io, controller):
-        self._io = io
-        self._controller = controller
-        self.observers = set()
-
-    def notify(self, sample):
-        #print self.observers
-        for observer in list(self.observers):
-            observer(sample)
-
-    def __call__(self):
-        s = sample(self._io, self._controller)
-        self.notify(s)
-        return s
+                  controller.state, controller.mash_temperature)
 
 # vim:sw=4:et:ai

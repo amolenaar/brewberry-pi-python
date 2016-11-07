@@ -26,16 +26,18 @@ class Controller(object):
         self.mash_temperature = 0
         self.act = self.Idle
 
-    def __str__(self):
-        return self.act.__name__
+    state = property(lambda s: s.act.__name__)
 
     def _set_started(self, v):
-        self.act = v and self.Resting or self.Idle
+        self.act = self.Resting if v else self.Idle
         self()
 
     started = property(lambda s: s.act != s.Idle, _set_started)
 
     def __call__(self):
+        """
+        Invoke another cycle in the state machine.
+        """
         new_state = self.act()
         if new_state: self.act = new_state
 

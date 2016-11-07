@@ -1,32 +1,63 @@
+from gevent import monkey; monkey.patch_all()
 
-import sys
-
-from sampler import Sampler
+from sampler import sample
 from logger import Logger, json_appender
 from controller import Controller
 import webui
 
-from tornado import ioloop
+import gevent, gevent.queue
+from bottle import run
 
-SAMPLER_INTERVAL = 5000     # ms
-CONTROL_INTERVAL = 2000
+import bottle
+bottle.debug(True)
+
+SAMPLER_INTERVAL = 5.000     # seconds
+CONTROL_INTERVAL = 2.000
+
+
+def timer_loop(handler, interval=CONTROL_INTERVAL):
+    while True:
+        handler()
+        gevent.sleep(interval)
+
+
+def sample_dump(queue):
+    for message in queue:
+        print 'MESSAGE', message
+
+
+def topic(origin, *destinations):
+    for message in origin:
+        for destination in destinations:
+            destination.put(message)
+
+
+def logger_loop(log, queue):
+    for message in queue:
+        log(message)
+
 
 def main(io):
-    mainloop = ioloop.IOLoop.instance()
-
     controller = Controller(io)
-    sampler = Sampler(io, controller)
 
     log_file = open('session.log', 'a')
-    log = Logger(sampler, json_appender(log_file))
+    log = Logger(json_appender(log_file))
+
+    sample_queue = gevent.queue.Queue()
+    logger_queue = gevent.queue.Queue()
+    web_queue = gevent.queue.Queue()
 
     try:
-        ioloop.PeriodicCallback(sampler, SAMPLER_INTERVAL, mainloop).start()
-        ioloop.PeriodicCallback(controller, CONTROL_INTERVAL, mainloop).start()
+        gevent.spawn(timer_loop, lambda: sample_queue.put(sample(io, controller)), SAMPLER_INTERVAL)
+        gevent.spawn(timer_loop, controller, CONTROL_INTERVAL)
+        gevent.spawn(logger_loop, log, logger_queue)
+        gevent.spawn(topic, sample_queue, logger_queue, web_queue)
 
-        webui.setup(io, sampler, controller, mainloop)
+        webui.setup_static()
+        webui.setup_controls(controller)
+        webui.setup_logger(web_queue)
+        run(host='0.0.0.0', port=9080, server='gevent')
 
-        mainloop.start()
     finally:
         log_file.close()
 

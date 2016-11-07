@@ -11,9 +11,12 @@ setup(
 
     setup_requires = [
         'nose >= 0.10.4',
-        'setuptools-git >= 0.3.4'
+        'setuptools-git >= 0.3.4',
+        'pytest-runner'
     ],
-    test_suite = 'nose.collector',
+    tests_require=[
+        'pytest'
+    ]
     )
 
 # vim:sw=4:et:ai

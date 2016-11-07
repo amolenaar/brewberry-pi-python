@@ -17,8 +17,7 @@ def different(sample, prev_sample):
            sample.controller != prev_sample.controller
 
 class Logger(object):
-    def __init__(self, sampler, appender):
-        sampler.observers.add(self)
+    def __init__(self, appender):
         self.prev_sample = None
         self._appender = appender
 
