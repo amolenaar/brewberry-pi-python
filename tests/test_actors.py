@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, init, UndeliveredMessage
+from brewberry.actors import spawn, UndeliveredMessage
 import gevent.queue
 import pytest
 

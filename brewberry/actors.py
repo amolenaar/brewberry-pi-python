@@ -33,6 +33,11 @@ class atom(object):
 
 PoisonPill = atom("Send this message to stop an actor. The Killer Joke, so to speak :).")
 
+class Killed(Exception):
+    """
+    Raised if an actor is killed.
+    """
+    pass
 
 class UndeliveredMessage(Exception):
     """
@@ -63,7 +68,7 @@ def spawn(func, *args, **kwargs):
     def actor_process(func):
         for args, kwargs in mailbox:
             if args == (PoisonPill,):
-                break
+                raise Killed
             func = func(*args, **kwargs)
             if not func:
                 break
@@ -82,6 +87,7 @@ def spawn(func, *args, **kwargs):
                 mailbox.put_nowait((args, kwargs))
             except gevent.queue.Full:
                 raise UndeliveredMessage()
+        return address
 
     def kill():
         """
@@ -91,12 +97,13 @@ def spawn(func, *args, **kwargs):
         """
         address(PoisonPill)
 
-    def monitor(monitor):
+    def monitor(mon):
         """
         Add a monitor to this actor. The monitor is called with the
         exception as argument, or None if the actor ended with no exception.
         """
-        proc.link(lambda dead_proc: monitor(dead_proc.exception))
+        proc.link(lambda dead_proc: mon(dead_proc.exception))
+        return address
 
     address.kill = kill
     address.monitor = monitor
@@ -104,13 +111,6 @@ def spawn(func, *args, **kwargs):
     address(*args, **kwargs)
 
     return address
-
-
-def init(f):
-    """
-    spawn(init, actor_function) -> address
-    """
-    return f
 
 
 def spawn_self(func, *args, **kwargs):
@@ -122,10 +122,22 @@ def spawn_self(func, *args, **kwargs):
     This will return a partially applied function, so the user
     does not have to bother with the function address itself.
     """
-    func_addr = spawn(init, func)
-    func_addr = functools.partial(func_addr, func_addr)
-    func_addr(*args, **kwargs)
-    return func_addr
+    func_addr = spawn(lambda f: f, func)
+
+    def address(*args, **kwargs):
+        func_addr(address, *args, **kwargs)
+        return address
+
+    def monitor(mon):
+        func_addr.monitor(mon)
+        return address
+
+    address.monitor = monitor
+    address.kill = func_addr.kill
+
+    address(*args, **kwargs)
+
+    return address
 
 
 # vim:sw=4:et:ai
