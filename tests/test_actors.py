@@ -9,19 +9,6 @@ def echo(message, queue):
     return echo
 
 
-def ping(receive, queue, i):
-    queue.put('ping %d' % i)
-    if i == 0: return
-    receive(receive, queue, i-1)
-    return pong
-
-def pong(receive, queue, i):
-    queue.put('pong %d' % i)
-    if i == 0: return
-    receive(receive, queue, i-1)
-    return ping
-
-
 class Counter(object):
     def __init__(self):
         self.i = 0
@@ -62,22 +49,6 @@ def test_actor_can_return_value():
     assert response.get() == 'World'
 
     echo_ref.kill()
-
-
-def test_can_change_state():
-    response = gevent.queue.Queue()
-    ping_ref = spawn(init, ping)
-    ping_ref(ping_ref, response, 5)
-
-    assert response.get() == 'ping 5'
-    assert response.get() == 'pong 4'
-    assert response.get() == 'ping 3'
-    assert response.get() == 'pong 2'
-    assert response.get() == 'ping 1'
-
-    gevent.sleep(0)
-
-    ping_ref.kill()
 
 
 def test_mailbox_is_tied_to_one_actor():
