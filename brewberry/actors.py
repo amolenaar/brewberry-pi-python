@@ -75,9 +75,6 @@ def spawn(func, *args, **kwargs):
         for args, kwargs in mailbox:
             if KillerJoke in args:
                 raise Killed
-            elif Monitor in args:
-                mon = kwargs['monitor']
-                gevent.getcurrent().link(lambda dead_proc: mon(func, dead_proc.exception))
             else:
                 next_func = next_func(*args, **kwargs)
                 if not next_func:
@@ -94,11 +91,14 @@ def spawn(func, *args, **kwargs):
 
         TODO: Create an object to allow specific messages to be sent as ``actor.message(args)``
         """
-        if not proc.ready():
-            try:
+        try:
+            if Monitor in args:
+                mon = kwargs['monitor']
+                proc.link(lambda dead_proc: mon(func, dead_proc.exception))
+            else:
                 mailbox.put_nowait((args, kwargs))
-            except gevent.queue.Full:
-                raise UndeliveredMessage()
+        except gevent.queue.Full:
+            raise UndeliveredMessage()
         return address
 
     address(*args, **kwargs)
