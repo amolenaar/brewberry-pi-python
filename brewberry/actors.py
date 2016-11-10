@@ -67,7 +67,7 @@ def spawn(func, *args, **kwargs):
 
     def actor_process(func):
         for args, kwargs in mailbox:
-            if args == (PoisonPill,):
+            if PoisonPill in args:
                 raise Killed
             func = func(*args, **kwargs)
             if not func:
@@ -122,8 +122,6 @@ def spawn_self(func, *args, **kwargs):
     This will return a partially applied function, so the user
     does not have to bother with the function address itself.
     """
-    func_addr = spawn(lambda f: f, func)
-
     def address(*args, **kwargs):
         func_addr(address, *args, **kwargs)
         return address
@@ -132,10 +130,13 @@ def spawn_self(func, *args, **kwargs):
         func_addr.monitor(mon)
         return address
 
-    address.monitor = monitor
-    address.kill = func_addr.kill
+    def kill():
+        address(PoisonPill)
 
-    address(*args, **kwargs)
+    address.monitor = monitor
+    address.kill = kill
+
+    func_addr = spawn(func, address, *args, **kwargs)
 
     return address
 
