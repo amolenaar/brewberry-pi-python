@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, UndeliveredMessage
+from brewberry.actors import spawn, kill, UndeliveredMessage
 import gevent.queue
 import pytest
 
@@ -26,12 +26,12 @@ def test_actor_function_should_return_address():
     addr = spawn(echo, 'Hello', gevent.queue.Queue())
     
     assert addr.__name__ == 'address'
-    addr.kill()
+    kill(addr)
 
 
 def test_killed_actor_throws_exception():
     addr = spawn(echo, 'Hello', gevent.queue.Queue())
-    addr.kill()
+    kill(addr)
 
     # Allow actor to process the message:
     gevent.sleep(0)
@@ -48,7 +48,7 @@ def test_actor_can_return_value():
     assert response.get() == 'Hello'
     assert response.get() == 'World'
 
-    echo_ref.kill()
+    kill(echo_ref)
 
 
 def test_mailbox_is_tied_to_one_actor():

@@ -3,7 +3,10 @@ Flying Circus
 -------------
 
 GEvent based actors.
-    
+
+We try to:
+ * Leverage actor interaction by using named parameters
+
 Future ideas:
 
  * How does this work with state machines? generic/singledispatch?
@@ -16,7 +19,6 @@ and http://erlang.org/doc/reference_manual/processes.html.
 
 """
 
-import functools
 import gevent
 import gevent.queue
 
@@ -32,6 +34,7 @@ class atom(object):
 
 
 PoisonPill = atom("Send this message to stop an actor. The Killer Joke, so to speak :).")
+Monitor = atom("Create a monitor on the actor")
 
 class Killed(Exception):
     """
@@ -66,12 +69,17 @@ def spawn(func, *args, **kwargs):
     mailbox = gevent.queue.Queue(MAX_QUEUE_SIZE)
 
     def actor_process(func):
+        next_func = func
         for args, kwargs in mailbox:
             if PoisonPill in args:
                 raise Killed
-            func = func(*args, **kwargs)
-            if not func:
-                break
+            elif Monitor in args:
+                mon = kwargs['monitor']
+                gevent.getcurrent().link(lambda dead_proc: mon(func, dead_proc.exception))
+            else:
+                next_func = next_func(*args, **kwargs)
+                if not next_func:
+                    break
 
     proc = gevent.spawn(actor_process, func)
 
@@ -81,6 +89,8 @@ def spawn(func, *args, **kwargs):
         and handled some time in the future.
 
         If there is no actor alive to handle the request, it it simply ignored.
+
+        TODO: Create an object to allow specific messages to be sent as ``actor.message(args)``
         """
         if not proc.ready():
             try:
@@ -88,25 +98,6 @@ def spawn(func, *args, **kwargs):
             except gevent.queue.Full:
                 raise UndeliveredMessage()
         return address
-
-    def kill():
-        """
-        Send the poison pill to the actor, terminating it.
-
-        The actor logic does not have an option to do cleanup.
-        """
-        address(PoisonPill)
-
-    def monitor(mon):
-        """
-        Add a monitor to this actor. The monitor is called with the
-        exception as argument, or None if the actor ended with no exception.
-        """
-        proc.link(lambda dead_proc: mon(dead_proc.exception))
-        return address
-
-    address.kill = kill
-    address.monitor = monitor
 
     address(*args, **kwargs)
 
@@ -123,22 +114,32 @@ def spawn_self(func, *args, **kwargs):
     does not have to bother with the function address itself.
     """
     def address(*args, **kwargs):
-        func_addr(address, *args, **kwargs)
+        actor(address, *args, **kwargs)
         return address
 
-    def monitor(mon):
-        func_addr.monitor(mon)
-        return address
-
-    def kill():
-        address(PoisonPill)
-
-    address.monitor = monitor
-    address.kill = kill
-
-    func_addr = spawn(func, address, *args, **kwargs)
+    actor = spawn(func, address, *args, **kwargs)
+    address.__doc__ = actor.__doc__
 
     return address
+
+
+def monitor(actor, mon):
+    """
+    Add a monitor to this actor. The monitor is called with the
+    exception as argument, or None if the actor ended with no exception.
+    """
+    actor(Monitor, monitor=mon)
+    return actor
+
+
+def kill(actor):
+    """
+    Send the poison pill to the actor, terminating it.
+
+    The actor logic does not have an option to do cleanup.
+    """
+    actor(PoisonPill)
+    return actor
 
 
 # vim:sw=4:et:ai
