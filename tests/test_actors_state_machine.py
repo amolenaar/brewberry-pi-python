@@ -2,11 +2,13 @@
 from brewberry.actors import spawn, spawn_self, monitor
 import gevent.queue
 
+
 def ping(self, queue, i):
     queue.put('ping %d' % i)
     if i == 0: return
     self(queue, i - 1)
     return pong
+
 
 def pong(self, queue, i):
     queue.put('pong %d' % i)
@@ -35,6 +37,5 @@ def test_state_machine():
     assert response.get() == 'ping 1'
 
     assert monitor_response.get() == (ping, None)
-
 
 # vim:sw=4:et:ai

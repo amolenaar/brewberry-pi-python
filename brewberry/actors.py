@@ -33,14 +33,16 @@ class atom(object):
         self.__doc__ = doc
 
 
-PoisonPill = atom("Send this message to stop an actor. The Killer Joke, so to speak :).")
+KillerJoke = atom("Send this message to stop an actor.")
 Monitor = atom("Create a monitor on the actor")
+
 
 class Killed(Exception):
     """
     Raised if an actor is killed.
     """
     pass
+
 
 class UndeliveredMessage(Exception):
     """
@@ -53,14 +55,14 @@ def spawn(func, *args, **kwargs):
     """
     spawn(func, *ags, **kwargs) -> address
 
-    Start a new actor by invoking the function `func(*args, **kwargs)`.
+    Start a new actor by invoking the function ``func(*args, **kwargs)``.
     The function should return the function to be invoked when the next message arrives.
 
-    The address is a simple callable on which you can send the new message
+    The address is a simple callable on which you can send the new message::
 
-    address(*args, **kwargs) -> None
+      address(*args, **kwargs) -> address
     
-    Invoke `address.kill()` to stop the actor. Messages in the queue are handled up to
+    Invoke `'kill(address)`` to stop the actor. Messages in the queue are handled up to
     this message.
 
     If the function should send messages to itself, use ``spawn_self`` instead.
@@ -71,7 +73,7 @@ def spawn(func, *args, **kwargs):
     def actor_process(func):
         next_func = func
         for args, kwargs in mailbox:
-            if PoisonPill in args:
+            if KillerJoke in args:
                 raise Killed
             elif Monitor in args:
                 mon = kwargs['monitor']
@@ -106,9 +108,11 @@ def spawn(func, *args, **kwargs):
 
 def spawn_self(func, *args, **kwargs):
     """
-    Spawn an actor with a self-reference as first parameter.
+    spawn_self(func, *args, **kwargs) -> address
 
-    `func(self_addr, *args, **kwargs)`
+    Spawn an actor with a self-reference as first parameter::
+
+      func(self_addr, *args, **kwargs)
 
     This will return a partially applied function, so the user
     does not have to bother with the function address itself.
@@ -125,6 +129,8 @@ def spawn_self(func, *args, **kwargs):
 
 def monitor(actor, mon):
     """
+    monitor(actor, mon) -> actor
+
     Add a monitor to this actor. The monitor is called with the
     exception as argument, or None if the actor ended with no exception.
     """
@@ -134,11 +140,13 @@ def monitor(actor, mon):
 
 def kill(actor):
     """
+    kill(actor) -> None
+
     Send the poison pill to the actor, terminating it.
 
     The actor logic does not have an option to do cleanup.
     """
-    actor(PoisonPill)
+    actor(KillerJoke)
     return actor
 
 

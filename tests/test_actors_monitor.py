@@ -3,8 +3,10 @@ from brewberry.actors import spawn, spawn_self, monitor, kill
 from gevent.queue import Queue
 from gevent import sleep
 
+
 def die_fast():
     raise Exception("Die fast")
+
 
 def my_monitor(q):
     def catcher(f, e):
@@ -46,7 +48,7 @@ def test_supervision():
     def restarter(self, func, counter=0):
         def supervise(f, e):
             if not e:
-                self(func, counter + 1)
+                self(f, counter + 1)
             else:
                 print 'Caught error', e
         monitor(spawn(func, counter), supervise)
