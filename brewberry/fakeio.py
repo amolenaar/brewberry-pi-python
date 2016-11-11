@@ -6,13 +6,13 @@ from time import time as system_time
 
 INTERVAL = 1000 # ms
 
-time = system_time()
+time = 0
 static_time = False
 temperature = 0
 heater = Off
 
 def read_time():
-    return system_time()
+    #return system_time()
     global time
     try:
         return time

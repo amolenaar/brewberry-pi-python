@@ -1,6 +1,7 @@
 from lettuce import step, world
 
 from brewberry import fakeio, logger, sampler, controller
+from gevent.queue import Queue
 
 DEFAULT_TEMP = 20.0
 
@@ -11,18 +12,26 @@ def a_running_system(step):
     fakeio.heater = Off
     world.log_lines = []
     world.controller = controller.Controller(fakeio)
-    world.sampler = sampler.Sampler(fakeio, world.controller)
     world.logger = logger.Logger(world.log_lines.append)
+
+    def _sampler():
+        sample_queue = Queue()
+        sampler.Sampler(fakeio, world.controller, sample_queue.put)
+        s = sample_queue.get()
+        world.logger(s)
+        return s
+
+    world.sampler = _sampler
 
 @step(u'When a line is logged')
 def a_line_is_logged(step):
-    world.log_line = world.sampler()
+    world.sample = world.sampler()
 
 @step(u'Then it contains information about time, temperature and heater')
 def it_contains_information_about_temperature_temperature_heater_and_time(step):
-    assert world.log_line.temperature == DEFAULT_TEMP, 'Temperature is %s' % world.log_line.temperature
-    assert world.log_line.heater == Off, 'Heater is %s' % world.log_line.heater
-    assert str(world.log_line.time) == '1970-01-01 00:00:00', 'Time is %s' % world.log_line.time
+    assert world.sample.temperature == DEFAULT_TEMP, 'Temperature is %s' % world.sample.temperature
+    assert world.sample.heater == Off, 'Heater is %s' % world.sample.heater
+    assert str(world.sample.time) == '1970-01-01 00:00:00', 'Time is %s' % world.sample.time
 
 @step(u'And a second line with the same state')
 def a_second_line_with_the_same_state(step):
