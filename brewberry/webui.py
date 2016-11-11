@@ -2,6 +2,8 @@
 from gevent.queue import Queue
 from bottle import get, post, request, response, static_file, redirect
 import json
+from actors import ask
+
 
 def setup_static():
 
@@ -18,7 +20,7 @@ def setup_controls(controller):
 
     @get("/controller")
     def get_controller_state():
-        return { 'controller': controller.started }
+        return { 'controller': ask(controller, 'query_state') }
 
     @post("/controller")
     def set_controller_state():
@@ -27,14 +29,16 @@ def setup_controls(controller):
 
     @get("/temperature")
     def get_temperature():
-        return { 'mash-temperature': controller.mash_temperature }
+        return { 'mash-temperature': ask(controller, 'query_temperature') }
 
     @post("/temperature")
     def set_temperature():
         t = float(request.json['set'])
         controller(temperature=t)
 
+
 def setup_logger(topic_registry):
+
     @get('/logger')
     def logger():
         # "Using server-sent events"

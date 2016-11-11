@@ -149,7 +149,7 @@ def kill(actor):
     """
     kill(actor) -> None
 
-    Send the poison pill to the actor, terminating it.
+    Send the Killer Joke to the actor, terminating it.
 
     The actor logic does not have an option to do cleanup.
     """
