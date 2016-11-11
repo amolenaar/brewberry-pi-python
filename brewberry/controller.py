@@ -34,12 +34,23 @@ class Controller(object):
 
     started = property(lambda s: s.act != s.Idle, _set_started)
 
-    def __call__(self):
+    def __call__(self, tick=None, start=None, temperature=None, query_temperature=None, query_state=None):
         """
-        Invoke another cycle in the state machine.
+        Handle incoming messages.
         """
-        new_state = self.act()
-        if new_state: self.act = new_state
+        if temperature is not None:
+            print 'set mash temperature', temperature
+            self.mash_temperature = temperature
+        elif start is not None:
+            print 'set started', start
+            self.started = start
+        elif query_temperature is not None:
+            query_temperature(self.mash_temperature)
+        elif query_state is not None:
+            query_state(self.state)
+        elif tick is not None:
+            self.act = self.act()
+        return self.__call__
 
     ## The state machine:
 
@@ -47,9 +58,11 @@ class Controller(object):
         """
         Initial (start) state. System is Idle. Heater is turned off if required.
         """
+        print 'Idle'
         io = self._io
         if io.read_heater():
             io.set_heater(Off)
+        return self.Idle
 
     def Heating(self):
         """
@@ -71,6 +84,7 @@ class Controller(object):
             t = io.read_time()
             if t >= end_time:
                 return self.Slacking
+            return Heating
         return Heating
 
     def Slacking(self):
@@ -92,6 +106,7 @@ class Controller(object):
                             len(sliding_window) > 10 and \
                             abs(sliding_window[-10] - sliding_window[-1]) < 0.05:
                 return self.Resting
+            return Slacking
         return Slacking
 
 
@@ -106,6 +121,6 @@ class Controller(object):
 
         if self.mash_temperature - io.read_temperature() > 0.1:
             return self.Heating
-
+        return self.Resting
 
 # vim:sw=4:et:ai

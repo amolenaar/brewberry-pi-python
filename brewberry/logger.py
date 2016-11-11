@@ -25,7 +25,7 @@ class Logger(object):
         if different(sample, self.prev_sample):
             self._appender(sample)
             self.prev_sample = sample
-        return sample
+        return self.__call__
 
 import json
 

@@ -20,7 +20,7 @@ and http://erlang.org/doc/reference_manual/processes.html.
 """
 
 import gevent
-import gevent.queue
+from gevent.queue import Queue
 
 MAX_QUEUE_SIZE = 1024
 
@@ -68,7 +68,7 @@ def spawn(func, *args, **kwargs):
     If the function should send messages to itself, use ``spawn_self`` instead.
     """
 
-    mailbox = gevent.queue.Queue(MAX_QUEUE_SIZE)
+    mailbox = Queue(MAX_QUEUE_SIZE)
 
     def actor_process(func):
         next_func = func
@@ -92,6 +92,7 @@ def spawn(func, *args, **kwargs):
         TODO: Create an object to allow specific messages to be sent as ``actor.message(args)``
         """
         try:
+            # Shortcut: this allows us to get feedback on processes that are already done
             if Monitor in args:
                 mon = kwargs['monitor']
                 proc.link(lambda dead_proc: mon(func, dead_proc.exception))
@@ -125,6 +126,12 @@ def spawn_self(func, *args, **kwargs):
     address.__doc__ = actor.__doc__
 
     return address
+
+
+def ask(actor, query, timeout=1):
+    response_queue = Queue(1)
+    actor(**{query: response_queue.put})
+    return response_queue.get(timeout=timeout)
 
 
 def monitor(actor, mon):

@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, kill, UndeliveredMessage
+from brewberry.actors import spawn, ask, kill, UndeliveredMessage
 import gevent.queue
 import pytest
 
@@ -72,7 +72,18 @@ def test_send_many_messages():
     addr = spawn(noop)
     with pytest.raises(UndeliveredMessage):
         for i in xrange(10000):
-            addr(i)
+            addr()
 
+
+def test_ask():
+    def ask_me():
+        def real_ask_me(q):
+            q(42)
+        return real_ask_me
+
+    ask_me_addr = spawn(ask_me)
+    answer = ask(ask_me_addr, 'q')
+
+    assert answer == 42
 
 # vim:sw=4:et:ai

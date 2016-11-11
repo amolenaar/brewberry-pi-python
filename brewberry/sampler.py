@@ -9,8 +9,10 @@
 
 from collections import namedtuple
 from datetime import datetime
+from actors import ask
 
 Sample = namedtuple('Sample', ['time', 'temperature', 'heater', 'controller', 'mash_temperature'])
+
 
 def _sample_as_dict(self):
     return {
@@ -23,8 +25,15 @@ def _sample_as_dict(self):
 
 Sample.as_dict = _sample_as_dict
 
-def sample(io, controller):
-    return Sample(datetime.utcfromtimestamp(io.read_time()), io.read_temperature(), io.read_heater(),
-                  controller.state, controller.mash_temperature)
+
+def Sampler(io, controller, receiver):
+    print 'Sampler', io, controller, receiver
+    receiver(Sample(datetime.utcfromtimestamp(io.read_time()),
+                    io.read_temperature(),
+                    io.read_heater(),
+                    ask(controller, 'query_state'),
+                    ask(controller, 'query_temperature')))
+    return Sampler
+
 
 # vim:sw=4:et:ai

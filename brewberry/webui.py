@@ -1,4 +1,5 @@
 
+from gevent.queue import Queue
 from bottle import get, post, request, response, static_file, redirect
 import json
 
@@ -22,8 +23,7 @@ def setup_controls(controller):
     @post("/controller")
     def set_controller_state():
         state = request.json['set']
-        controller.started = ('on' == state)
-        return get_controller_state()
+        controller(start=('on' == state))
 
     @get("/temperature")
     def get_temperature():
@@ -32,10 +32,9 @@ def setup_controls(controller):
     @post("/temperature")
     def set_temperature():
         t = float(request.json['set'])
-        controller.mash_temperature = t
-        return get_temperature()
+        controller(temperature=t)
 
-def setup_logger(queue):
+def setup_logger(topic_registry):
     @get('/logger')
     def logger():
         # "Using server-sent events"
@@ -49,9 +48,15 @@ def setup_logger(queue):
         # Set client-side auto-reconnect timeout, ms.
         yield 'retry: 100\n\n'
 
-        # TODO: need one queue per listener
-        for sample in queue:
-            s = sample.as_dict()
-            yield 'id: %s\nevent: sample\ndata: %s\n\n' % (s['time'], json.dumps(s))
+        queue = Queue()
+        queue_put = queue.put
+        try:
+            topic_registry(register=queue_put)
+            # TODO: need one queue per listener
+            for sample in queue:
+                s = sample.as_dict()
+                yield 'id: %s\nevent: sample\ndata: %s\n\n' % (s['time'], json.dumps(s))
+        finally:
+            topic_registry(deregister=queue_put)
 
 # vim:sw=4:et:ai
