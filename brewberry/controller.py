@@ -42,11 +42,11 @@ class Controller(object):
             self.mash_temperature = temperature
         elif start is not None:
             self.started = start
-        elif query_temperature is not None:
+        elif query_temperature:
             query_temperature(self.mash_temperature)
-        elif query_state is not None:
+        elif query_state:
             query_state(self.state)
-        elif tick is not None:
+        elif tick:
             self.act = self.act()
         return self.__call__
 

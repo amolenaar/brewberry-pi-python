@@ -70,9 +70,9 @@ def and_the_heating_is_on_off(step, s):
 @step(u'When the fluid is (\d+) degrees')
 def when_the_fluid_is_xx_degrees(step, degrees):
     fakeio.temperature = float(degrees)
-    world.controller()
+    world.controller(tick=True)
     fakeio.time += 30
-    world.controller()
+    world.controller(tick=True)
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
@@ -92,7 +92,7 @@ def given_controller_and_heater_turned_on(step):
 @step(u'When I turn off the controller')
 def when_i_turn_off_the_controller(step):
     world.controller.started = False
-    world.controller()
+    world.controller(tick=True)
     
 # Heat calculation:
 
