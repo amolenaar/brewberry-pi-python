@@ -23,11 +23,11 @@ def timer(self, receiver, kwargs=dict(), interval=CONTROL_INTERVAL):
 
 
 def topic_registry(receivers=(), register=None, deregister=None, query_receivers=None):
-    if register is not None:
+    if register:
         return partial(topic_registry, receivers=receivers + (register,))
-    elif deregister is not None:
+    elif deregister:
         return partial(topic_registry, receivers=tuple(filter(lambda r: r is not deregister, receivers)))
-    elif query_receivers is not None:
+    elif query_receivers:
         query_receivers(receivers)
     return partial(topic_registry, receivers=receivers)
 
@@ -35,7 +35,6 @@ def topic_registry(receivers=(), register=None, deregister=None, query_receivers
 def topic(topic_registry):
     def _topic(*args, **kwargs):
         receivers = ask(topic_registry, 'query_receivers')
-        print 'topic', receivers, args, kwargs
         for r in receivers:
             r(*args, **kwargs)
         return _topic

@@ -39,10 +39,8 @@ class Controller(object):
         Handle incoming messages.
         """
         if temperature is not None:
-            print 'set mash temperature', temperature
             self.mash_temperature = temperature
         elif start is not None:
-            print 'set started', start
             self.started = start
         elif query_temperature is not None:
             query_temperature(self.mash_temperature)
@@ -58,7 +56,6 @@ class Controller(object):
         """
         Initial (start) state. System is Idle. Heater is turned off if required.
         """
-        print 'Idle'
         io = self._io
         if io.read_heater():
             io.set_heater(Off)

@@ -27,7 +27,6 @@ Sample.as_dict = _sample_as_dict
 
 
 def Sampler(io, controller, receiver):
-    print 'Sampler', io, controller, receiver
     receiver(Sample(datetime.utcfromtimestamp(io.read_time()),
                     io.read_temperature(),
                     io.read_heater(),
