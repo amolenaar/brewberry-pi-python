@@ -92,7 +92,7 @@ def spawn(func, *args, **kwargs):
         TODO: Create an object to allow specific messages to be sent as ``actor.message(args)``
         """
         try:
-            # Shortcut: this allows us to get feedback on processes that are already done
+            # Special case: this allows us to get feedback on processes that are already done
             if Monitor in args:
                 mon = kwargs['monitor']
                 proc.link(lambda dead_proc: mon(func, dead_proc.exception))
