@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, spawn_self, monitor, kill
+from brewberry.actors import spawn, with_self_address, monitor, kill
 from gevent.queue import Queue
 from gevent import sleep
 
@@ -40,24 +40,30 @@ def test_monitor_on_dead_actor():
 
 def test_supervision():
 
-    def echo(counter):
-        print counter
-        if counter > 9: raise Exception("end")
+    def countdown(counter):
+        if counter <= 0: raise Exception("end")
+
+    caught_exceptions = []
 
     # See http://learnyousomeerlang.com/supervisors
-    def restarter(self, func, counter=0):
+    @with_self_address
+    def supervisor(self, func, counter=10):
         def supervise(f, e):
             if not e:
-                self(f, counter + 1)
+                self(func, counter - 1)
             else:
-                print 'Caught error', e
-        monitor(spawn(func, counter), supervise)
-        return restarter
+                caught_exceptions.append(str(e))
+        addr = spawn(func, counter)
+        monitor(addr, supervise)
+        return supervisor
 
-    supervisor = spawn_self(restarter, echo)
+    s = spawn(supervisor, countdown)
 
     sleep(0.1)
 
-    kill(supervisor)
+    kill(s)
+
+    assert 'end' in caught_exceptions, caught_exceptions
+
 
 # vim:sw=4:et:ai

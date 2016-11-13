@@ -19,11 +19,9 @@ and http://erlang.org/doc/reference_manual/processes.html.
 
 Still need implementation for:
 
- * link(address) -> None - Create link between the calling actor and the actor identified by it's address
- * spawn_link(func) -> addr() (with _self version?)
- * spawn_monitor(func) -> (addr(), monitor_addr())
+ * spawn_monitor(func) -> (addr(), monitor_ref)
+ * process_info(Pid) -> Info - process is alive, monitors, monitored_by, links
  * exit(addr, reason) -> None - let the actor die with a reason (raise it)
- * convert spawn_self's "self" part to be a decorator?
 """
 
 import gevent
@@ -52,11 +50,32 @@ class Killed(Exception):
     pass
 
 
+class KilledByLink(Killed):
+    """
+    Special case of being killed by a dead link
+    """
+    pass
+
+
 class UndeliveredMessage(Exception):
     """
     This exception is raised on an address if the actor
     mailbox is full.
     """
+
+def with_self_address(func):
+    """
+    @with_self_address(func) -> func
+    def my_actor(self_addr):
+        pass
+
+    To ensure the actor's own address is passed in, apply this decorator.
+
+    :param func:
+    :return:
+    """
+    func.with_self_address = True
+    return func
 
 
 def spawn(func, *args, **kwargs):
@@ -81,12 +100,11 @@ def spawn(func, *args, **kwargs):
     def actor_process(func):
         next_func = func
         for args, kwargs in mailbox:
-            if KillerJoke in args:
-                raise Killed
-            else:
-                next_func = next_func(*args, **kwargs)
-                if not next_func:
-                    break
+            if getattr(next_func, 'with_self_address', False):
+                args = (address,) + args
+            next_func = next_func(*args, **kwargs)
+            if not next_func:
+                break
 
     # should we consider calling spawn_raw() instead?
     proc = gevent.spawn(actor_process, func)
@@ -107,39 +125,29 @@ def spawn(func, *args, **kwargs):
                 proc.link(lambda dead_proc: mon(func, dead_proc.exception))
             elif Link in args:
                 me = gevent.getcurrent()
-                print 'building link between', proc, me
-                me.link(lambda p: proc.throw(Killed))
-                proc.link(lambda p: me.throw(Killed))
+                me.link_exception(lambda p: proc.kill(KilledByLink))
+                proc.link_exception(lambda p: me.kill(KilledByLink))
+            elif KillerJoke in args:
+                proc.kill(Killed)
             else:
                 mailbox.put_nowait((args, kwargs))
         except gevent.queue.Full:
             raise UndeliveredMessage()
         return address
 
-    address(*args, **kwargs)
+    address.__name__ = 'address:{}'.format(func)
 
-    return address
+    return address(*args, **kwargs)
 
 
-def spawn_self(func, *args, **kwargs):
+def spawn_link(func, *args, **kwargs):
     """
-    spawn_self(func, *args, **kwargs) -> address
+    spawn_link(func, *args, **kwargs) -> address
 
-    Spawn an actor with a self-reference as first parameter::
-
-      func(self_addr, *args, **kwargs)
-
-    This will return a partially applied function, so the user
-    does not have to bother with the function address itself.
     """
-    def address(*args, **kwargs):
-        actor(address, *args, **kwargs)
-        return address
+    address = spawn(func, Link)
+    return address(*args, **kwargs)
 
-    actor = spawn(func, address, *args, **kwargs)
-    address.__doc__ = actor.__doc__
-
-    return address
 
 def ask(actor, query, timeout=1):
     response_queue = Queue(1)
@@ -159,16 +167,19 @@ def link(address):
     return address(Link)
 
 
-def monitor(actor, mon):
+def monitor(address, mon):
     """
-    monitor(actor, mon) -> actor
+    monitor(address, mon) -> address
 
     TODO: change output to monitor_ref
 
     Add a monitor to this actor. The monitor is called with the
     exception as argument, or None if the actor ended with no exception.
+
+    ``mon`` may be an actor address or a function.
+    It's called from a separate greenlet anyway.
     """
-    return actor(Monitor, monitor=mon)
+    return address(Monitor, monitor=mon)
 
 
 def kill(actor):

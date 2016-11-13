@@ -25,7 +25,7 @@ class Counter(object):
 def test_actor_function_should_return_address():
     addr = spawn(echo, 'Hello', gevent.queue.Queue())
     
-    assert addr.__name__ == 'address'
+    assert addr.__name__.startswith('address:<'), addr.__name__
     kill(addr)
 
 

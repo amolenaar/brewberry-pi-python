@@ -1,8 +1,9 @@
 
-from brewberry.actors import spawn, spawn_self, monitor
+from brewberry.actors import spawn, with_self_address, monitor
 import gevent.queue
 
 
+@with_self_address
 def ping(self, queue, i):
     queue.put('ping %d' % i)
     if i == 0: return
@@ -10,6 +11,7 @@ def ping(self, queue, i):
     return pong
 
 
+@with_self_address
 def pong(self, queue, i):
     queue.put('pong %d' % i)
     if i == 0: return
@@ -27,7 +29,7 @@ def test_state_machine():
     response = gevent.queue.Queue()
     monitor_response = gevent.queue.Queue()
 
-    state_machine = spawn_self(ping, response, 5)
+    state_machine = spawn(ping, response, 5)
     monitor(state_machine, spawn(my_monitor, monitor_response))
 
     assert response.get() == 'ping 5'

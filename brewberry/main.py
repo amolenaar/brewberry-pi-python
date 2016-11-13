@@ -5,7 +5,7 @@ from sampler import Sampler
 from logger import Logger, json_appender
 from controller import Controller
 import webui
-from actors import spawn, spawn_self, ask
+from actors import spawn, with_self_address, ask
 from functools import partial
 
 import gevent, gevent.queue
@@ -15,6 +15,7 @@ SAMPLER_INTERVAL = 5.000     # seconds
 CONTROL_INTERVAL = 2.000
 
 
+@with_self_address
 def timer(self, receiver, kwargs=dict(), interval=CONTROL_INTERVAL):
     gevent.sleep(interval)
     receiver(**kwargs)
@@ -47,13 +48,13 @@ def main(io):
 
     try:
         controller = spawn(Controller, io)
-        controller_timer = spawn_self(timer, receiver=controller, kwargs=dict(tick=True), interval=CONTROL_INTERVAL)
+        controller_timer = spawn(timer, receiver=controller, kwargs=dict(tick=True), interval=CONTROL_INTERVAL)
 
         sample_topic_registry = spawn(topic_registry)
         sample_topic = spawn(topic, sample_topic_registry)
 
         sampler = spawn(Sampler, io, controller, receiver=sample_topic)
-        sample_timer = spawn_self(timer, receiver=sampler, kwargs=dict(io=io, controller=controller, receiver=sample_topic))
+        sample_timer = spawn(timer, receiver=sampler, kwargs=dict(io=io, controller=controller, receiver=sample_topic))
 
         sample_topic_registry(register=log)
 
