@@ -20,66 +20,43 @@ class Config(object):
         return max((dtemp * JOULES_1_LITRE * self.volume) / (self.power * self.efficiency), self.wait_time)
 
 
-class Controller(object):
-    config = Config()
+def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 
-    def __init__(self, io):
-        self._io = io
-        self._temperature = 0
-        self._act = spawn(idle_state_machine, self._io)
-
-    def update_state_machine(self, new_act, *args, **kwargs):
-        if self._act:
-            self._act(stop=True)
-        self._act = spawn(new_act, *args, **kwargs)
-
-    def __call__(self, tick=None, start=None, temperature=None, query_temperature=None, query_state=None):
-        """
-        Handle incoming messages.
-        """
+    def controller(tick=None, start=None, temperature=None, query_temperature=None, query_state=None):
         if temperature is not None:
-            self._temperature = temperature
-            self.update_state_machine(state_machine, self._io, self.config, temperature)
+            return Controller(io, config, temperature, state_machine)(start=bool(state_machine))
         elif start is not None:
-            if start:
-                self.update_state_machine(state_machine, self._io, self.config, self._temperature)
-            else:
-                self.update_state_machine(idle_state_machine, self._io)
+            if state_machine:
+                state_machine(stop=True)
+
+            # TODO: should be spawn_link
+            new_fsm = spawn(mash_state_machine, io, config, set_temperature) if start else None
+            return Controller(io, config, set_temperature, new_fsm)
         elif query_temperature:
-            query_temperature(self._temperature)
+            query_temperature(set_temperature)
         elif query_state:
-            self._act(query_state=query_state)
-        elif tick:
-            self._act()
-        return self.__call__
+            state_machine(query_state=query_state) if state_machine else query_state('Idle')
+        elif tick and state_machine:
+            state_machine()
+        return controller
+
+    return controller
 
 
-def state(func):
-    def state_decorator(stop=None, query_state=None):
-        if stop:
-            return
-        elif query_state:
-            query_state(func.__name__)
-            return state_decorator
-        else:
-            return func()
-    return state_decorator
+def mash_state_machine(io, config, mash_temperature):
 
-
-def idle_state_machine(io):
-
-    @state
-    def Idle():
-        """
-        Initial (start) state. System is Idle. Heater is turned off if required.
-        """
-        if io.read_heater():
-            io.set_heater(Off)
-        return Idle
-    return Idle()
-
-
-def state_machine(io, config, mash_temperature):
+    def state(func):
+        def state_decorator(stop=None, query_state=None):
+            if stop:
+                if io.read_heater():
+                    io.set_heater(Off)
+                return
+            elif query_state:
+                query_state(func.__name__)
+                return state_decorator
+            else:
+                return func()
+        return state_decorator
 
     @state
     def Heating():

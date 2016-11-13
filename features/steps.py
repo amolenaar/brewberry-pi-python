@@ -1,6 +1,7 @@
 from lettuce import step, world
 
 from brewberry import fakeio, logger, sampler, controller
+import gevent
 from gevent.queue import Queue
 
 DEFAULT_TEMP = 20.0
@@ -76,10 +77,13 @@ def when_the_fluid_is_xx_degrees(step, degrees):
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
+    gevent.sleep(0)
     assert fakeio.read_heater()
 
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
+    world.controller(tick=True)
+    gevent.sleep(0)
     assert not fakeio.read_heater(), fakeio.read_heater()
 
 @step(u'Given controller and heater turned on')
