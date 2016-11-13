@@ -2,7 +2,7 @@
 Control the system.
 """
 
-from actors import spawn
+from actors import spawn_link
 
 # Energy requires to raise the temperature of 1 litre of water by 1 degrees (C)
 JOULES_1_LITRE = 4186
@@ -29,8 +29,7 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
             if state_machine:
                 state_machine(stop=True)
 
-            # TODO: should be spawn_link
-            new_fsm = spawn(mash_state_machine, io, config, set_temperature) if start else None
+            new_fsm = spawn_link(mash_state_machine, io, config, set_temperature) if start else None
             return Controller(io, config, set_temperature, new_fsm)
         elif query_temperature:
             query_temperature(set_temperature)
