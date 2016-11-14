@@ -31,6 +31,7 @@ MAX_QUEUE_SIZE = 1024
 KillerJoke = intern('KillerJoke')
 Monitor = intern('Monitor')
 Link = intern('Link')
+TrapLink = intern('TrapLink')
 ActorInfo = intern('ActorInfo')
 
 ActorInfoTuple = namedtuple('ActorInfoTuple', ['links', 'mailbox_size', 'monitored_by', 'monitors', 'running', 'successful', 'exception', 'exc_info'])
@@ -119,6 +120,10 @@ def spawn(func, *args, **kwargs):
                 me = gevent.getcurrent()
                 me.link_exception(lambda p: proc.kill(KilledByLink))
                 proc.link_exception(lambda p: me.kill(KilledByLink))
+            elif TrapLink in args:
+                me = gevent.getcurrent()
+                me.link_exception(lambda dead_proc: proc.kill(KilledByLink))
+                proc.link_exception(lambda dead_proc: me._address(trap_exit=(address, dead_proc.exception)))
             elif ActorInfo in args:
                 return ActorInfoTuple(
                     links=(),
@@ -138,6 +143,7 @@ def spawn(func, *args, **kwargs):
             raise UndeliveredMessage()
         return address
 
+    proc._address = address
     address.__name__ = 'address:{}'.format(func)
 
     return address(*args, **kwargs)
@@ -153,6 +159,23 @@ def spawn_link(func, *args, **kwargs):
     :return:
     """
     address = spawn(func, Link)
+    return address(*args, **kwargs)
+
+def spawn_trap_link(func, *args, **kwargs):
+    """
+    spawn_trap_link(func, *args, **kwargs) -> address
+
+    Like ``spawn_link()``, but if the child actor dies, the exception
+    is sent to the current actor in the form::
+
+      addr(trap_exit=(func, exc))
+
+    :param func:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    address = spawn(func, TrapLink)
     return address(*args, **kwargs)
 
 

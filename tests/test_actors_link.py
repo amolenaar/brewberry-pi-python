@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, spawn_link, link, monitor, kill, actor_info
+from brewberry.actors import spawn, link, spawn_link, spawn_trap_link, monitor, kill, actor_info
 from gevent import sleep
 from gevent.queue import Queue
 
@@ -52,7 +52,6 @@ def test_link_chain():
     addr = spawn(countdown, 10)
     monitor(addr, supervise)
 
-    # wait for
     assert repr(caught_exceptions.get(timeout=2)) == 'KilledByLink()'
 
 
@@ -88,5 +87,29 @@ def test_link_chain_ending_normally_parent_first():
     monitor(addr, supervise)
 
     assert repr(caught_exceptions.get(timeout=2)) == 'None'
+
+
+def test_trap_link_chain():
+    def boom():
+        sleep(0.1) # ... do work
+        raise Exception('boom')
+
+    caught_traps = Queue()
+
+    def trap(trap_exit=None):
+        if trap_exit:
+            caught_traps.put(trap_exit)
+        else:
+            spawn_trap_link(boom)
+            return trap
+
+    addr = spawn(trap)
+
+    function, exception = caught_traps.get(timeout=2)
+    assert 'boom' in repr(function)
+    assert repr(exception) == "Exception('boom',)"
+
+    assert actor_info(addr).exception is None
+
 
 # vim:sw=4:et:ai
