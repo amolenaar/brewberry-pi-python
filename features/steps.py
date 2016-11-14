@@ -1,6 +1,7 @@
 from lettuce import step, world
 
-from brewberry import fakeio, logger, sampler, controller
+from brewberry import fakeio, logger, sampler, controller, actors
+from brewberry import main
 import gevent
 from gevent.queue import Queue
 
@@ -11,28 +12,31 @@ def a_running_system(step):
     fakeio.time = 0
     fakeio.temperature = DEFAULT_TEMP
     fakeio.heater = Off
-    world.log_lines = []
+
+    world.log_queue = Queue()
+    world.sample_queue = Queue()
     world.config = controller.Config()
-    world.controller = controller.Controller(fakeio, world.config)
-    world.logger = logger.Logger(world.log_lines.append)
-
-    def _sampler():
-        sample_queue = Queue()
-        sampler.Sampler(fakeio, world.controller, sample_queue.put)
-        s = sample_queue.get()
-        world.logger(s)
-        return s
-
-    world.sampler = _sampler
+    world.controller, world.sample_topic_registry = main.start_system(fakeio, world.log_queue.put)
+    world.sample_topic_registry(register=world.sample_queue.put)
+    world.controller(start=True)
+    world.config = controller.Config()
 
 def fast_forward():
+    for i in range(20):
+        world.controller(tick=True)
+        gevent.sleep(0.01)
+        fakeio.time += 2
     world.controller(tick=True)
-    fakeio.time += 60
+    gevent.sleep(0.1)
+
+def sample():
     world.controller(tick=True)
+    world.sample = world.sample_queue.get(timeout=5)
 
 @step(u'When a line is logged')
 def a_line_is_logged(step):
-    world.sample = world.sampler()
+    sample()
+    world.sample = world.sample_queue.get(timeout=5)
 
 @step(u'Then it contains information about time, temperature and heater')
 def it_contains_information_about_temperature_temperature_heater_and_time(step):
@@ -42,33 +46,31 @@ def it_contains_information_about_temperature_temperature_heater_and_time(step):
 
 @step(u'And a second line with the same state')
 def a_second_line_with_the_same_state(step):
-    world.sampler()
+    sample()
 
 @step(u'And a second line with a temparature T plus (-?\d+\.\d+) degrees')
 def a_second_line_with_a_temparature_t_plus_d_degrees(step, delta_t):
     fakeio.temperature = DEFAULT_TEMP + float(delta_t)
-    world.sampler()
+    sample()
 
 @step(u'And a minute expires')
 def when_a_minute_expires(step):
-    fakeio.time = fakeio.time + 60
-    world.sampler()
+    fast_forward()
+    sample()
 
 @step(u'Then (no|one) new line is logged')
 def no_one_new_line_is_logged(step, s):
+    message1 = world.log_queue.get(timeout=5)
     if s == 'one':
-        assert len(world.log_lines) == 2, world.log_lines
-    else:
-        assert len(world.log_lines) == 1, world.log_lines
+        message2 = world.log_queue.get(timeout=5)
 
 ## Controller:
 
 @step(u'Given a mash temperature of (\d+) degrees')
 def given_a_mash_temperature_of_66_degrees(step, degrees):
     a_running_system(step)
-    world.controller = controller.Controller(fakeio)
     world.controller(temperature=float(degrees))
-    world.controller.started = True
+    fast_forward()
 
 @step(u'And the heating is turned (on|off)')
 def and_the_heating_is_on_off(step, s):
@@ -81,21 +83,25 @@ def when_the_fluid_is_xx_degrees(step, degrees):
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
-    gevent.sleep(0)
-    assert fakeio.read_heater()
+    fast_forward()
+    assert fakeio.read_heater(), (fakeio.read_heater(), actors.ask(world.controller, 'query_temperature'), actors.ask(world.controller, 'query_state'))
 
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
-    world.controller(tick=True)
-    gevent.sleep(0)
-    assert not fakeio.read_heater(), fakeio.read_heater()
+    fast_forward()
+    gevent.sleep(5)
+    # assert actors.ask(world.controller, 'query_temperature') == 'Boo', actors.ask(world.controller, 'query_temperature')
+    assert not fakeio.read_heater(), (fakeio.read_heater(), actors.ask(world.controller, 'query_temperature'), actors.ask(world.controller, 'query_state'))
 
 @step(u'Given controller and heater turned on')
 def given_controller_and_heater_turned_on(step):
     a_running_system(step)
-    world.controller = world.controller(start=True)
+    world.controller(start=False)
     fakeio.set_heater(On)
-    world.controller = world.controller(temperature=66)
+    world.controller(temperature=66)
+    world.controller(start=True)
+    world.controller(tick=True)
+    gevent.sleep(0)
 
 @step(u'When I turn off the controller')
 def when_i_turn_off_the_controller(step):

@@ -42,22 +42,27 @@ def topic(topic_registry):
     return _topic
 
 
+def start_system(io, log_appender):
+    log = spawn(Logger, log_appender)
+    controller = spawn(Controller, io)
+    controller_timer = spawn(timer, receiver=controller, kwargs=dict(tick=True), interval=CONTROL_INTERVAL)
+
+    sample_topic_registry = spawn(topic_registry)
+    sample_topic = spawn(topic, sample_topic_registry)
+
+    sampler = spawn(Sampler, io, controller, receiver=sample_topic)
+    sample_timer = spawn(timer, receiver=sampler, kwargs=dict(io=io, controller=controller, receiver=sample_topic))
+
+    sample_topic_registry(register=log)
+
+    return controller, sample_topic_registry
+
+
 def main(io):
     log_file = open('session.log', 'a')
-    log = spawn(Logger, json_appender(log_file))
 
     try:
-        controller = spawn(Controller, io)
-        controller_timer = spawn(timer, receiver=controller, kwargs=dict(tick=True), interval=CONTROL_INTERVAL)
-
-        sample_topic_registry = spawn(topic_registry)
-        sample_topic = spawn(topic, sample_topic_registry)
-
-        sampler = spawn(Sampler, io, controller, receiver=sample_topic)
-        sample_timer = spawn(timer, receiver=sampler, kwargs=dict(io=io, controller=controller, receiver=sample_topic))
-
-        sample_topic_registry(register=log)
-
+        controller, sample_topic_registry = start_system(io, json_appender(log_file))
         webui.setup_static()
         webui.setup_controls(controller)
         webui.setup_logger(sample_topic_registry)
