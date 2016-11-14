@@ -4,26 +4,24 @@ Flying Circus
 
 GEvent based actors.
 
-We try to:
- * Leverage actor interaction by using named parameters
-
-Future ideas:
-
- * How does this work with state machines? generic/singledispatch?
- * Can we achieve n:m relationship between address and actor?
-
 This library tries to stay true to Erlang's way of handling actors.
 
-See http://erlang.org/doc/reference_manual/errors.html
-and http://erlang.org/doc/reference_manual/processes.html.
+Sources:
+ 
+ * http://berb.github.io/diploma-thesis/community/054_actors.html - for the actor concepts
+ * http://learnyousomeerlang.com - 
+ * http://erlang.org/doc/reference_manual/errors.html
+ * http://erlang.org/doc/reference_manual/processes.html.
 
 Still need implementation for:
 
+ * @trap_exit - do not kill, but pass on the exception to the actor
  * spawn_monitor(func) -> (addr(), monitor_ref)
  * exit(addr, reason) -> None - let the actor die with a reason (raise it)
  * provide a simple OO bridge. e.g. allow ``address.message(args)``
 """
 
+from collections import namedtuple
 import gevent
 from gevent.queue import Queue
 
@@ -35,6 +33,7 @@ Monitor = intern('Monitor')
 Link = intern('Link')
 ActorInfo = intern('ActorInfo')
 
+ActorInfoTuple = namedtuple('ActorInfoTuple', ['links', 'mailbox_size', 'monitored_by', 'monitors', 'running', 'successful', 'exception', 'exc_info'])
 
 class Killed(Exception):
     """
@@ -121,7 +120,7 @@ def spawn(func, *args, **kwargs):
                 me.link_exception(lambda p: proc.kill(KilledByLink))
                 proc.link_exception(lambda p: me.kill(KilledByLink))
             elif ActorInfo in args:
-                return dict(
+                return ActorInfoTuple(
                     links=(),
                     mailbox_size=mailbox.qsize(),
                     monitored_by=(),

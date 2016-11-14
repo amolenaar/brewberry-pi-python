@@ -34,8 +34,8 @@ def test_link_two_actors():
     assert repeater1 in dead_procs, dead_procs
     assert repeater2 in dead_procs, dead_procs
 
-    assert repr(actor_info(actor1)['exception']) == 'Killed()'
-    assert repr(actor_info(actor2)['exception']) == 'KilledByLink()'
+    assert repr(actor_info(actor1).exception) == 'Killed()'
+    assert repr(actor_info(actor2).exception) == 'KilledByLink()'
 
 
 def test_link_chain():
