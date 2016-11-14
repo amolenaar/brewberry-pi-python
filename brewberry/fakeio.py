@@ -4,20 +4,18 @@
 import datetime
 import math
 
-INTERVAL = 1000 # ms
-
 time = 0
-static_time = True
 temperature = 0
 heater = Off
+
+time_updater = lambda t: t
 
 def read_time():
     global time
     try:
         return time
     finally:
-        if not static_time:
-            time += INTERVAL / 1000.
+        time = time_updater(time)
 
 def read_temperature():
     return temperature + math.sin(time / 20.0)

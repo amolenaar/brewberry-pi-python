@@ -25,7 +25,7 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
     def controller(tick=None, start=None, temperature=None, query_temperature=None, query_state=None):
         if temperature is not None:
             return Controller(io, config, temperature, state_machine)(start=bool(state_machine))
-        elif start is not None:
+        elif start:
             if state_machine:
                 state_machine(stop=True)
 
