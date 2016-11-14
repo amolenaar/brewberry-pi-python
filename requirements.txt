@@ -1,2 +1,5 @@
-tornado >= 3.0
+gevent >= 1.2a1
+bottle >= 0.12.10
+setuptools
 lettuce >= 0.2.16
+pytest >= 3.0

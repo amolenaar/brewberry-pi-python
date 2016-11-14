@@ -2,6 +2,8 @@
 Control the system.
 """
 
+from actors import spawn_link
+
 # Energy requires to raise the temperature of 1 litre of water by 1 degrees (C)
 JOULES_1_LITRE = 4186
 
@@ -18,92 +20,105 @@ class Config(object):
         return max((dtemp * JOULES_1_LITRE * self.volume) / (self.power * self.efficiency), self.wait_time)
 
 
-class Controller(object):
-    config = Config()
+def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 
-    def __init__(self, io):
-        self._io = io
-        self.mash_temperature = 0
-        self.act = self.Idle
+    def controller(tick=None, start=None, temperature=None, query_temperature=None, query_state=None):
+        if temperature is not None:
+            return Controller(io, config, temperature, state_machine)(start=bool(state_machine))
+        elif start is not None:
+            if state_machine:
+                state_machine(stop=True)
 
-    def __str__(self):
-        return self.act.__name__
+            new_fsm = spawn_link(mash_state_machine, io, config, set_temperature) if start else None
+            return Controller(io, config, set_temperature, new_fsm)
+        elif query_temperature:
+            query_temperature(set_temperature)
+        elif query_state:
+            state_machine(query_state=query_state) if state_machine else query_state('Idle')
+        elif tick and state_machine:
+            state_machine()
+        return controller
 
-    def _set_started(self, v):
-        self.act = v and self.Resting or self.Idle
-        self()
+    return controller
 
-    started = property(lambda s: s.act != s.Idle, _set_started)
 
-    def __call__(self):
-        new_state = self.act()
-        if new_state: self.act = new_state
+def mash_state_machine(io, config, mash_temperature):
 
-    ## The state machine:
+    def state(func):
+        def state_decorator(stop=None, query_state=None):
+            if stop:
+                if io.read_heater():
+                    io.set_heater(Off)
+                return
+            elif query_state:
+                query_state(func.__name__)
+                return state_decorator
+            else:
+                return func()
+        return state_decorator
 
-    def Idle(self):
-        """
-        Initial (start) state. System is Idle. Heater is turned off if required.
-        """
-        io = self._io
-        if io.read_heater():
-            io.set_heater(Off)
-
-    def Heating(self):
+    @state
+    def Heating():
         """
         . calculate time to heat
         . Heat as long as the timer has not elapsed
         . Heating is done for at least 30 seconds.
         """
-        io = self._io
-        dT = self.mash_temperature - io.read_temperature()
+        dT = mash_temperature - io.read_temperature()
 
         if dT <= 0:
-            return self.Resting
+            return Resting
 
-        end_time = io.read_time() + self.config.time(dT)
+        end_time = io.read_time() + config.time(dT)
 
         io.set_heater(On)
 
+        @state
         def Heating():
             t = io.read_time()
             if t >= end_time:
-                return self.Slacking
+                return Slacking
+            return Heating
         return Heating
 
-    def Slacking(self):
+    @state
+    def Slacking():
         """
         . Keep track of x last temperatures
         . Define dtemp over x temperature readings
         . If dtemp < y go to next stage
         . Stay in this state for at least 30 seconds.
         """
-        io = self._io
         io.set_heater(Off)
 
-        end_time = io.read_time() + self.config.wait_time
+        end_time = io.read_time() + config.wait_time
         sliding_window = []
+
+        @state
         def Slacking():
             t = io.read_time()
             sliding_window.append(io.read_temperature())
             if t > end_time and \
                             len(sliding_window) > 10 and \
                             abs(sliding_window[-10] - sliding_window[-1]) < 0.05:
-                return self.Resting
+                return Resting
+            return Slacking
         return Slacking
 
-
-    def Resting(self):
+    @state
+    def Resting():
         """
         . keep track of last temperature reading
         . If t_mash < y-d degrees, go to next stage
         """
-        io = self._io
         if io.read_heater():
             io.set_heater(Off)
 
-        if self.mash_temperature - io.read_temperature() > 0.1:
-            return self.Heating
+        if mash_temperature - io.read_temperature() > 0.1:
+            return Heating
+        return Resting
+
+    return Resting()
 
 
 # vim:sw=4:et:ai

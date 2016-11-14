@@ -1,6 +1,8 @@
 from lettuce import step, world
 
 from brewberry import fakeio, logger, sampler, controller
+import gevent
+from gevent.queue import Queue
 
 DEFAULT_TEMP = 20.0
 
@@ -11,18 +13,26 @@ def a_running_system(step):
     fakeio.heater = Off
     world.log_lines = []
     world.controller = controller.Controller(fakeio)
-    world.sampler = sampler.Sampler(fakeio, world.controller)
-    world.logger = logger.Logger(world.sampler, world.log_lines.append)
+    world.logger = logger.Logger(world.log_lines.append)
+
+    def _sampler():
+        sample_queue = Queue()
+        sampler.Sampler(fakeio, world.controller, sample_queue.put)
+        s = sample_queue.get()
+        world.logger(s)
+        return s
+
+    world.sampler = _sampler
 
 @step(u'When a line is logged')
 def a_line_is_logged(step):
-    world.log_line = world.sampler()
+    world.sample = world.sampler()
 
 @step(u'Then it contains information about time, temperature and heater')
 def it_contains_information_about_temperature_temperature_heater_and_time(step):
-    assert world.log_line.temperature == DEFAULT_TEMP, 'Temperature is %s' % world.log_line.temperature
-    assert world.log_line.heater == Off, 'Heater is %s' % world.log_line.heater
-    assert str(world.log_line.time) == '1970-01-01 00:00:00', 'Time is %s' % world.log_line.time
+    assert world.sample.temperature == DEFAULT_TEMP, 'Temperature is %s' % world.sample.temperature
+    assert world.sample.heater == Off, 'Heater is %s' % world.sample.heater
+    assert str(world.sample.time) == '1970-01-01 00:00:00', 'Time is %s' % world.sample.time
 
 @step(u'And a second line with the same state')
 def a_second_line_with_the_same_state(step):
@@ -61,16 +71,19 @@ def and_the_heating_is_on_off(step, s):
 @step(u'When the fluid is (\d+) degrees')
 def when_the_fluid_is_xx_degrees(step, degrees):
     fakeio.temperature = float(degrees)
-    world.controller()
+    world.controller(tick=True)
     fakeio.time += 30
-    world.controller()
+    world.controller(tick=True)
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
+    gevent.sleep(0)
     assert fakeio.read_heater()
 
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
+    world.controller(tick=True)
+    gevent.sleep(0)
     assert not fakeio.read_heater(), fakeio.read_heater()
 
 @step(u'Given controller and heater turned on')
@@ -83,7 +96,7 @@ def given_controller_and_heater_turned_on(step):
 @step(u'When I turn off the controller')
 def when_i_turn_off_the_controller(step):
     world.controller.started = False
-    world.controller()
+    world.controller(tick=True)
     
 # Heat calculation:
 

@@ -2,23 +2,26 @@
 # IO stuff, on the Raspberry Pi.
 #
 
+import glob, time
+from memoize import memoize
+import RPi.GPIO as IO
+
 HEATER_PIN = 17
 
-import os, glob, datetime, time
-from memoize import memoize
-import RPi.GPIO as io
-io.setmode(io.BCM)
-io.setup(HEATER_PIN, io.OUT)
+IO.setmode(IO.BCM)
+IO.setup(HEATER_PIN, IO.OUT)
 
 base_dir = '/sys/bus/w1/devices/'
 device_folder = glob.glob(base_dir + '28*')[0]
 device_file = device_folder + '/w1_slave'
+
 
 def _read_temp_raw():
     f = open(device_file, 'r')
     lines = f.readlines()
     f.close()
     return lines
+
 
 def _read_temp():
     lines = _read_temp_raw()
@@ -35,19 +38,23 @@ _heater = Off
 
 ## Interface methods:
 
+
 def read_time():
     return time.time()
+
 
 @memoize(timeout=2)
 def read_temperature():
     return _read_temp()
 
+
 def read_heater():
     return _heater
 
+
 def set_heater(v):
     global _heater
-    io.output(HEATER_PIN, v)
+    IO.output(HEATER_PIN, v)
     _heater = v
 
 
