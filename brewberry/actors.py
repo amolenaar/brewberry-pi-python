@@ -88,6 +88,7 @@ def spawn(func, *args, **kwargs):
     with ``@with_self_address``.
     """
 
+    # TODO change to collections.deque, we do not care about order
     mailbox = Queue(MAX_QUEUE_SIZE)
 
     def actor_process(func):
@@ -95,9 +96,18 @@ def spawn(func, *args, **kwargs):
         for args, kwargs in mailbox:
             if getattr(next_func, 'with_self_address', False):
                 args = (address,) + args
-            next_func = next_func(*args, **kwargs)
-            if not next_func:
-                break
+            # Catch TypeError, since it's caused when the a method signature does not match
+            try:
+                next_func = next_func(*args, **kwargs)
+            except TypeError, e:
+                print 'Could not deliver message %s(*%s, **%s): %s' % (next_func, args, kwargs, e)
+                # TODO: maybe send it to a DEAD_LETTER actor(address, args, kwargs)?
+                # Add async, best effort, to prevent infinite loop
+                # See http://erlang.org/doc/getting_started/conc_prog.html, search for "However"
+                gevent.spawn(mailbox.put_nowait, (args, kwargs))
+            else:
+                if not next_func:
+                    break
 
     # should we consider calling spawn_raw() instead?
     proc = gevent.spawn(actor_process, func)

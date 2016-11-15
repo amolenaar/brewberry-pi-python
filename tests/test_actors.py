@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, ask, kill, UndeliveredMessage
+from brewberry.actors import spawn, ask, kill, actor_info, UndeliveredMessage
 import gevent.queue
 import pytest
 
@@ -74,6 +74,22 @@ def test_send_many_messages():
         for i in xrange(10000):
             addr()
 
+
+def test_actor_does_not_break_on_invalid_message_signature():
+
+    def noop():
+        return noop
+    addr = spawn(noop)
+
+    addr(invalid=1)
+
+    gevent.sleep(0)
+
+    assert actor_info(addr).running
+
+    kill(addr)
+
+    assert not actor_info(addr).running
 
 def test_ask():
     def ask_me():

@@ -53,6 +53,7 @@ def start_system(io, log_appender):
     sampler = spawn(Sampler, io, controller, receiver=sample_topic)
     sample_timer = spawn(timer, receiver=sampler, kwargs=dict(io=io, controller=controller, receiver=sample_topic))
 
+    # Put all on a one_for_all supervisor
     sample_topic_registry(register=log)
 
     return controller, sample_topic_registry
