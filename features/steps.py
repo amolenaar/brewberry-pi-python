@@ -64,13 +64,12 @@ def no_one_new_line_is_logged(step, s):
     if s == 'one':
         message2 = world.log_queue.get(timeout=5)
 
+#######################################
 ## Controller:
 
 @step(u'Given a mash temperature of (\d+) degrees')
 def given_a_mash_temperature_of_66_degrees(step, degrees):
-    a_running_system(step)
-    world.controller(temperature=float(degrees))
-    fast_forward()
+    world.controller = controller.mash_state_machine(fakeio, controller.Config(), mash_temperature=float(degrees))
 
 @step(u'And the heating is turned (on|off)')
 def and_the_heating_is_on_off(step, s):
@@ -79,39 +78,30 @@ def and_the_heating_is_on_off(step, s):
 @step(u'When the fluid is (\d+) degrees')
 def when_the_fluid_is_xx_degrees(step, degrees):
     fakeio.temperature = float(degrees)
-    fast_forward()
+    world.controller = world.controller()()
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
-    fast_forward()
-    assert fakeio.read_heater(), (fakeio.read_heater(), actors.ask(world.controller, 'query_temperature'), actors.ask(world.controller, 'query_state'))
+    assert fakeio.read_heater(), (fakeio.read_heater(), world.controller)
 
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
-    fast_forward()
-    gevent.sleep(5)
-    # assert actors.ask(world.controller, 'query_temperature') == 'Boo', actors.ask(world.controller, 'query_temperature')
-    assert not fakeio.read_heater(), (fakeio.read_heater(), actors.ask(world.controller, 'query_temperature'), actors.ask(world.controller, 'query_state'))
+    assert not fakeio.read_heater(), (fakeio.read_heater(), world.controller)
 
 @step(u'Given controller and heater turned on')
 def given_controller_and_heater_turned_on(step):
-    a_running_system(step)
-    world.controller(start=False)
     fakeio.set_heater(On)
-    world.controller(temperature=66)
-    world.controller(start=True)
-    world.controller(tick=True)
-    gevent.sleep(0)
+    world.controller = controller.mash_state_machine(fakeio, controller.Config(), mash_temperature=66)
 
 @step(u'When I turn off the controller')
 def when_i_turn_off_the_controller(step):
-    world.controller(start=False)
-    world.controller(tick=True)
-    
+    world.controller(stop=1)
+
 # Heat calculation:
 
 @step(u'Given the heater has a performance of (\d+)%')
 def given_the_heater_has_a_performance_of_xx(step, pct):
+    world.config = controller.Config()
     world.config.performance = int(pct) / 100.
 
 @step(u'And the kettle is (\d+) Watts')

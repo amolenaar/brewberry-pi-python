@@ -55,6 +55,7 @@ def mash_state_machine(io, config, mash_temperature):
                 return state_decorator
             else:
                 return func()
+        state_decorator.__name__ = func.__name__
         return state_decorator
 
     @state
