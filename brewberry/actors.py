@@ -7,9 +7,9 @@ GEvent based actors.
 This library tries to stay true to Erlang's way of handling actors.
 
 Sources:
- 
+
  * http://berb.github.io/diploma-thesis/community/054_actors.html - for the actor concepts
- * http://learnyousomeerlang.com - 
+ * http://learnyousomeerlang.com -
  * http://erlang.org/doc/reference_manual/errors.html
  * http://erlang.org/doc/reference_manual/processes.html.
 
