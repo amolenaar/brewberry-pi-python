@@ -1,5 +1,4 @@
 from gevent import monkey; monkey.patch_all()
-import bottle
 
 from sampler import Sampler
 from logger import Logger, json_appender

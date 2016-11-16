@@ -2,7 +2,6 @@
 # Logger.
 #
 
-from collections import namedtuple
 import datetime
 
 TEMPERATURE_DELTA = 0.07 # degrees Celcius

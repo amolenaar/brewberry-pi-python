@@ -1,6 +1,6 @@
 from lettuce import step, world
 
-from brewberry import fakeio, logger, sampler, controller, actors
+from brewberry import fakeio, controller
 from brewberry import main
 import gevent
 from gevent.queue import Queue
@@ -60,9 +60,9 @@ def when_a_minute_expires(step):
 
 @step(u'Then (no|one) new line is logged')
 def no_one_new_line_is_logged(step, s):
-    message1 = world.log_queue.get(timeout=5)
+    assert world.log_queue.get(timeout=5)
     if s == 'one':
-        message2 = world.log_queue.get(timeout=5)
+        assert world.log_queue.get(timeout=5)
 
 #######################################
 ## Controller:

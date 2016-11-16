@@ -1,7 +1,6 @@
 
 # Fake (test/reference, whatever you like) implementation for IO.
 # It's a module: there's only one for the entire system.
-import datetime
 import math
 
 time = 0
