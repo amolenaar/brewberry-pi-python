@@ -53,7 +53,7 @@ function Controls() {
                 contentType: 'application/json',
                 type: 'POST'
             });
-    };
+    }
 
     this.turnOn = function () {
         setHeater('on');
