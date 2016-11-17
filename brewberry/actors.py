@@ -21,6 +21,8 @@ Still need implementation for:
  * provide a simple OO bridge. e.g. allow ``address.message(args)``
 """
 
+from __future__ import absolute_import
+
 from collections import namedtuple
 import gevent
 from gevent.queue import Queue

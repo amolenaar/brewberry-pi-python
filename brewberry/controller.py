@@ -2,7 +2,9 @@
 Control the system.
 """
 
-from actors import spawn_link
+from __future__ import absolute_import
+
+from .actors import spawn_link
 
 # Energy requires to raise the temperature of 1 litre of water by 1 degrees (C)
 JOULES_1_LITRE = 4186
