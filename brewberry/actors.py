@@ -30,11 +30,11 @@ from gevent.queue import Queue
 MAX_QUEUE_SIZE = 1024
 
 
-KillerJoke = intern('KillerJoke')
-Monitor = intern('Monitor')
-Link = intern('Link')
-TrapLink = intern('TrapLink')
-ActorInfo = intern('ActorInfo')
+KillerJoke = intern('__KillerJoke__')
+Monitor = intern('__Monitor__')
+Link = intern('__Link__')
+TrapLink = intern('__TrapLink__')
+ActorInfo = intern('__ActorInfo__')
 
 ActorInfoTuple = namedtuple('ActorInfoTuple', ['links', 'mailbox_size', 'monitored_by', 'monitors', 'running', 'successful', 'exception', 'exc_info'])
 
