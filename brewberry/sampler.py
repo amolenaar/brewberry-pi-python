@@ -30,8 +30,8 @@ def Sampler(io, controller, receiver):
     receiver(Sample(datetime.utcfromtimestamp(io.read_time()),
                     io.read_temperature(),
                     io.read_heater(),
-                    ask(controller, 'query_state'),
-                    ask(controller, 'query_temperature')))
+                    ask(controller, 'which_state'),
+                    ask(controller, 'which_temperature')))
     return Sampler
 
 

@@ -198,14 +198,14 @@ def ask(address, query, timeout=1):
     Query a value on an actor. The query is sent to a named parameter
     where the name equals the value of ``query``.
 
-    >>> def actor(query_field=None):
-    ...     if query_field:
-    ...         query_field(42)
+    >>> def actor(which_field=None):
+    ...     if which_field:
+    ...         which_field(42)
     ...         return # terminate after the answer is delivered
     ...     return actor
 
     >>> address = spawn(actor)
-    >>> ask(address, 'query_field')
+    >>> ask(address, 'which_field')
     42
 
     :param address: Actor address

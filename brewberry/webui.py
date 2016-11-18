@@ -20,7 +20,7 @@ def setup_controls(controller):
 
     @get("/controller")
     def get_controller_state():
-        return {'controller': ask(controller, 'query_state')}
+        return {'controller': ask(controller, 'which_state')}
 
     @post("/controller")
     def set_controller_state():
@@ -29,7 +29,7 @@ def setup_controls(controller):
 
     @get("/temperature")
     def get_temperature():
-        return {'mash-temperature': ask(controller, 'query_temperature')}
+        return {'mash-temperature': ask(controller, 'which_temperature')}
 
     @post("/temperature")
     def set_temperature():

@@ -34,7 +34,7 @@ def one_for_one_supervisor(child_specs, restarts=5):
     def _start_child_spec(child_spec):
         return spawn_trap_link(child_spec.start_func, *child_spec.args, **child_spec.kwargs)
 
-    def deputy(child_addrs, restarts, start_child=None, terminate_child=None, trap_exit=None):
+    def deputy(child_addrs, restarts, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
         if trap_exit and trap_exit[1]:
             func, exc = trap_exit
             if restarts <= 1:
@@ -46,6 +46,8 @@ def one_for_one_supervisor(child_specs, restarts=5):
             pass
         elif terminate_child:
             pass
+        elif which_children:
+            which_children({cs.id: addr for addr, cs in child_addrs.items()})
         return partial(deputy, child_addrs, restarts)
 
     child_addrs = {_start_child_spec(cs): cs for cs in child_specs}
@@ -67,7 +69,7 @@ def one_for_all_supervisor(child_specs, restarts=5):
     def _start_child_spec(child_spec):
         return spawn_trap_link(stoppable(child_spec.start_func), *child_spec.args, **child_spec.kwargs)
 
-    def deputy(child_addrs, restarts, start_child=None, terminate_child=None, trap_exit=None):
+    def deputy(child_addrs, restarts, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
         if trap_exit and trap_exit[1]:
             if restarts <= 1:
                 raise Killed
@@ -78,6 +80,8 @@ def one_for_all_supervisor(child_specs, restarts=5):
             pass
         elif terminate_child:
             pass
+        elif which_children:
+            which_children({cs.id: addr for addr, cs in child_addrs.items()})
         return partial(deputy, child_addrs, restarts)
 
     child_addrs = {_start_child_spec(cs): cs for cs in child_specs}

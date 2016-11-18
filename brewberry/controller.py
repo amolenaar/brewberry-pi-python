@@ -24,7 +24,7 @@ class Config(object):
 
 def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 
-    def controller(tick=None, start=None, temperature=None, query_temperature=None, query_state=None):
+    def controller(tick=None, start=None, temperature=None, which_temperature=None, which_state=None):
         if temperature is not None:
             return Controller(io, config, temperature, state_machine)(start=bool(state_machine))
         elif start:
@@ -33,10 +33,10 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 
             new_fsm = spawn_link(mash_state_machine, io, config, set_temperature) if start else None
             return Controller(io, config, set_temperature, new_fsm)
-        elif query_temperature:
-            query_temperature(set_temperature)
-        elif query_state:
-            state_machine(query_state=query_state) if state_machine else query_state('Idle')
+        elif which_temperature:
+            which_temperature(set_temperature)
+        elif which_state:
+            state_machine(which_state=which_state) if state_machine else which_state('Idle')
         elif tick and state_machine:
             state_machine()
         return controller
@@ -47,13 +47,13 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 def mash_state_machine(io, config, mash_temperature):
 
     def state(func):
-        def state_decorator(stop=None, query_state=None):
+        def state_decorator(stop=None, which_state=None):
             if stop:
                 if io.read_heater():
                     io.set_heater(Off)
                 return
-            elif query_state:
-                query_state(func.__name__)
+            elif which_state:
+                which_state(func.__name__)
                 return state_decorator
             else:
                 return func()
