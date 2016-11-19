@@ -138,4 +138,18 @@ def test_register_twice():
 
     assert not registered()
 
+def test_ask_with_registered_address():
+    def oracle(which_answer=None):
+        if which_answer:
+            which_answer(42)
+        return oracle
+
+    addr = spawn(oracle)
+
+    register('some-name', addr)
+
+    assert ask('some-name', 'which_answer') == 42
+
+    kill(addr)
+
 # vim:sw=4:et:ai

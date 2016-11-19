@@ -214,7 +214,7 @@ def ask(address, query, timeout=1):
     :return: Value requested from the actor
     """
     response_queue = Queue(1)
-    address(**{query: response_queue.put})
+    (whereis(address) if isinstance(address, basestring) else address)(**{query: response_queue.put})
     return response_queue.get(timeout=timeout)
 
 
