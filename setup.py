@@ -4,7 +4,7 @@ from setuptools import setup
 VERSION='0.1'
 
 setup(
-    name='brewgear-pi',
+    name='brewberry-pi',
     version=VERSION,
     description='Home brewing automation with Raspberry Pi',
     author="Arjan J. Molenaar",
