@@ -1,20 +1,20 @@
 
 from __future__ import absolute_import
 
-from .actors import spawn_trap_link, Killed
+from .actors import spawn_trap_link, register, Killed
 from collections import namedtuple
 from functools import partial, wraps
 
 class KilledByChild(Killed): pass
 
 
-ChildSpecTuple = namedtuple('ChildSpecTuple', ['id', 'start_func', 'args', 'kwargs', 'restart', 'shutdown'])
+ChildSpecTuple = namedtuple('ChildSpecTuple', ['id', 'start_func', 'args', 'kwargs', 'register', 'restart', 'shutdown'])
 
 
-def child_spec(id, start_func, args=(), kwargs=None, restart='transient', shutdown=1):
+def child_spec(id, start_func, args=(), kwargs=None, register=False, restart='transient', shutdown=1):
     assert restart in ('permanent', 'transient', 'temporary')
     assert type(shutdown) is int or shutdown in ('brutal_kill', 'infinity')
-    return ChildSpecTuple(id, start_func, args, kwargs or {}, restart, shutdown)
+    return ChildSpecTuple(id, start_func, args, kwargs or {}, register, restart, shutdown)
 
 
 def supervisor(func):
@@ -27,12 +27,13 @@ def supervisor(func):
     return func
 
 
-
-
 def one_for_one_supervisor(child_specs, restarts=5):
 
-    def _start_child_spec(child_spec):
-        return spawn_trap_link(child_spec.start_func, *child_spec.args, **child_spec.kwargs)
+    def _start_child_spec(spec):
+        child = spawn_trap_link(spec.start_func, *spec.args, **spec.kwargs)
+        if spec.register:
+            register(spec.id, child)
+        return child
 
     def deputy(child_addrs, restarts, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
         if trap_exit and trap_exit[1]:
@@ -66,8 +67,11 @@ def one_for_all_supervisor(child_specs, restarts=5):
             return func(*args, **kwargs)
         return wrapper
 
-    def _start_child_spec(child_spec):
-        return spawn_trap_link(stoppable(child_spec.start_func), *child_spec.args, **child_spec.kwargs)
+    def _start_child_spec(spec):
+        child = spawn_trap_link(stoppable(spec.start_func), *spec.args, **spec.kwargs)
+        if spec.register:
+            register(spec.id, child)
+        return child
 
     def deputy(child_addrs, restarts, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
         if trap_exit and trap_exit[1]:

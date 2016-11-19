@@ -29,6 +29,18 @@ def test_one_for_one_supervisor_should_restart_process():
     assert repr(info.exception) == 'Killed()', info
 
 
+def test_one_for_one_supervisor_should_restart_registered_process():
+    q = Queue()
+    actor = spawn(one_for_one_supervisor, child_specs=(child_spec('boom', boom, (), {'q': q.put}, register=True),))
+
+    gevent.sleep(1)
+    info = actor_info(actor)
+
+    assert q.qsize() == 5
+    assert not info.running, info
+    assert repr(info.exception) == 'Killed()', info
+
+
 def test_one_for_one_supervisor_should_restart_process_with_three_specs():
     q1 = Queue()
     q2 = Queue()
