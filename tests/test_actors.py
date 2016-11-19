@@ -1,7 +1,16 @@
 
-from brewberry.actors import spawn, ask, kill, actor_info, UndeliveredMessage
+from brewberry.actors import spawn, ask, kill, actor_info, register, whereis, registered, UndeliveredMessage
+from brewberry.actors import _registry
 import gevent.queue
 import pytest
+
+
+def setup_function(function):
+    _registry.clear()
+
+
+def noop():
+    return noop
 
 
 def echo(message, queue):
@@ -91,6 +100,7 @@ def test_actor_does_not_break_on_invalid_message_signature():
 
     assert not actor_info(addr).running
 
+
 def test_ask():
     def ask_me():
         def real_ask_me(q):
@@ -101,5 +111,31 @@ def test_ask():
     answer = ask(ask_me_addr, 'q')
 
     assert answer == 42
+
+
+def test_register():
+    addr = spawn(noop)
+    register('name', addr)
+    assert whereis('name') is addr
+    assert whereis('foo') is None
+    assert 'name' in registered()
+
+    kill(addr)
+    gevent.sleep(0)
+
+    assert not registered()
+
+
+def test_register_twice():
+    addr = spawn(noop)
+
+    register('name', addr)
+    with pytest.raises(KeyError):
+        register('name', addr)
+
+    kill(addr)
+    gevent.sleep(0)
+
+    assert not registered()
 
 # vim:sw=4:et:ai

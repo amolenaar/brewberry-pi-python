@@ -236,8 +236,8 @@ def monitor(address, mon):
 
     TODO: change output to monitor_ref
 
-    Add a monitor to this actor. The monitor is called with the
-    exception as argument, or None if the actor ended with no exception.
+    Add a monitor to this actor. The monitor is called as ``mon(addr, exc)``.
+    Exc is an exception, or None if the actor ended with no exception.
 
     ``mon`` may be an actor address or a function.
     It's called from a separate greenlet anyway.
@@ -263,6 +263,45 @@ def kill(actor):
     The actor logic does not have an option to do cleanup.
     """
     return actor(KillerJoke)
+
+
+_registry = {}
+
+
+def register(name, addr):
+    """
+    register(name, addr) -> None
+
+    register actor address ``addr`` as ``name``. If the actor
+    dies, the reference is removed.
+    """
+    def remove_when_done(f, e):
+        try:
+            del _registry[name]
+        except KeyError:
+            pass
+
+    if name in _registry:
+        raise KeyError("Name %s is already registered" % name)
+
+    monitor(addr, remove_when_done)
+    _registry[name] = addr
+
+
+def whereis(name):
+    """
+    whereis(actor_name): address | None
+    """
+    return _registry.get(name, None)
+
+
+def registered():
+    """
+    register() -> { name: addr, ... }
+
+    Get a map of all registered addresses.
+    """
+    return {name: addr for name, addr in _registry.items()}
 
 
 # vim:sw=4:et:ai
