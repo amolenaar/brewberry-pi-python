@@ -28,11 +28,17 @@ class Logger(object):
 
 import json
 
-def json_appender(file):
+def json_appender(filename):
     def jsonifier(sample):
-        json.dump(sample.as_dict(), file)
-        file.write('\n')
-        file.flush()
+        with open(filename, 'w') as file:
+            json.dump(sample.as_dict(), file)
+            file.write('\n')
+            file.flush()
     return jsonifier
+
+
+def SessionLogger(log_file):
+    return Logger(json_appender(log_file))
+
 
 # vim:sw=4:et:ai

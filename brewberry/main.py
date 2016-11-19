@@ -1,7 +1,7 @@
 from gevent import monkey; monkey.patch_all()
 
 from sampler import Sampler
-from logger import Logger, json_appender
+from logger import Logger, SessionLogger
 from controller import Controller
 import webui
 from actors import spawn, with_self_address, ask
@@ -41,8 +41,8 @@ def topic(topic_registry):
     return _topic
 
 
-def start_system(io, log_appender):
-    log = spawn(Logger, log_appender)
+def start_system(io, log_appender=None):
+    log = spawn(Logger, log_appender) if log_appender else SessionLogger('session.log')
     controller = spawn(Controller, io)
     controller_timer = spawn(timer, receiver=controller, kwargs=dict(tick=True), interval=CONTROL_INTERVAL)
 
@@ -58,17 +58,16 @@ def start_system(io, log_appender):
     return controller, sample_topic_registry
 
 
+def start_web(controller, sample_topic_registry):
+    webui.setup_static()
+    webui.setup_controls(controller)
+    webui.setup_logger(sample_topic_registry)
+    run(host='0.0.0.0', port=9080, server='gevent')
+
+
 def main(io):
-    log_file = open('session.log', 'a')
+    controller, sample_topic_registry = start_system(io)
+    start_web(controller, sample_topic_registry)
 
-    try:
-        controller, sample_topic_registry = start_system(io, json_appender(log_file))
-        webui.setup_static()
-        webui.setup_controls(controller)
-        webui.setup_logger(sample_topic_registry)
-        run(host='0.0.0.0', port=9080, server='gevent')
-
-    finally:
-        log_file.close()
 
 # vim:sw=4:et:ai
