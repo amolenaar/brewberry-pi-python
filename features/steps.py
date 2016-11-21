@@ -2,7 +2,7 @@ from lettuce import step, world
 
 from brewberry import fakeio, controller
 from brewberry import main
-from brewberry.actors import _registry
+from brewberry.actors import whereis, _registry
 import gevent
 from gevent.queue import Queue
 
@@ -19,7 +19,9 @@ def a_running_system(step):
     world.log_queue = Queue()
     world.sample_queue = Queue()
     world.config = controller.Config()
-    world.controller, world.sample_topic_registry = main.start_system(fakeio, world.log_queue.put)
+    main.start_system(fakeio, world.log_queue.put)
+    world.controller = whereis('controller')
+    world.sample_topic_registry = whereis('sample-topic-registry')
     world.sample_topic_registry(register=world.sample_queue.put)
     world.controller(start=True)
     world.config = controller.Config()
@@ -72,7 +74,12 @@ def no_one_new_line_is_logged(step, s):
 
 @step(u'Given a mash temperature of (\d+) degrees')
 def given_a_mash_temperature_of_66_degrees(step, degrees):
-    world.controller = controller.mash_state_machine(fakeio, controller.Config(), mash_temperature=float(degrees))
+    world.controller = controller.mash_state_machine(None, fakeio, controller.Config(), mash_temperature=float(degrees))
+
+@step(u'Given controller and heater turned on')
+def given_controller_and_heater_turned_on(step):
+    fakeio.set_heater(On)
+    world.controller = controller.mash_state_machine(None, fakeio, controller.Config(), mash_temperature=66)
 
 @step(u'And the heating is turned (on|off)')
 def and_the_heating_is_on_off(step, s):
@@ -90,11 +97,6 @@ def then_the_heating_should_be_turned_on(step):
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
     assert not fakeio.read_heater(), (fakeio.read_heater(), world.controller)
-
-@step(u'Given controller and heater turned on')
-def given_controller_and_heater_turned_on(step):
-    fakeio.set_heater(On)
-    world.controller = controller.mash_state_machine(fakeio, controller.Config(), mash_temperature=66)
 
 @step(u'When I turn off the controller')
 def when_i_turn_off_the_controller(step):
