@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from functools import partial
 from .actors import ask
 
+
 def topic_registry(receivers=(), register=None, deregister=None, which_receivers=None):
     if register:
         return partial(topic_registry, receivers=receivers + (register,))

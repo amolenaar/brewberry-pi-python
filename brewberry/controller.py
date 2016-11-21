@@ -44,6 +44,7 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 
     return controller
 
+
 @with_self_address
 def mash_state_machine(self, io, config, mash_temperature):
 

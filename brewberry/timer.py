@@ -8,9 +8,9 @@ import gevent
 
 
 @with_self_address
-def timer(self, receiver, kwargs=dict(), interval=3):
+def timer(self, receiver, kwargs=None, interval=3):
     gevent.sleep(interval)
-    receiver(**kwargs)
+    receiver(**(kwargs or {}))
     self(receiver, kwargs, interval)
     return timer
 

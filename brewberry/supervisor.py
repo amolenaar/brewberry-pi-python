@@ -3,7 +3,8 @@ from __future__ import absolute_import
 
 from .actors import spawn_trap_link, register, Killed
 from collections import namedtuple
-from functools import partial, wraps
+from functools import partial
+
 
 class KilledByChild(Killed): pass
 
