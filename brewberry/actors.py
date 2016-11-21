@@ -25,6 +25,7 @@ from __future__ import absolute_import
 from collections import namedtuple
 import gevent
 from gevent.queue import Queue
+from logging import Logger
 
 MAX_QUEUE_SIZE = 1024
 
@@ -36,6 +37,7 @@ TrapLink = intern('__TrapLink__')
 ActorInfo = intern('__ActorInfo__')
 
 ActorInfoTuple = namedtuple('ActorInfoTuple', ['links', 'mailbox_size', 'monitored_by', 'monitors', 'running', 'successful', 'exception', 'exc_info'])
+
 
 class Killed(Exception):
     """
@@ -87,23 +89,25 @@ def spawn(func, *args, **kwargs):
     with ``@with_self_address``.
     """
 
-    # TODO change to collections.deque, we do not care about order
     mailbox = Queue(MAX_QUEUE_SIZE)
 
     def actor_process(func):
         next_func = func
-        for args, kwargs in mailbox:
+        for retries, args, kwargs in mailbox:
             if getattr(next_func, 'with_self_address', False):
                 args = (address,) + args
             # Catch TypeError, since it's caused when the a method signature does not match
             try:
                 next_func = next_func(*args, **kwargs)
-            except TypeError, e:
-                print 'Could not deliver message %s(*%s, **%s): %s' % (next_func, args, kwargs, e)
-                # TODO: maybe send it to a DEAD_LETTER actor(address, args, kwargs)?
+            except TypeError as e:
+                # Logger('actor').warning('Could not deliver message %s(*%s, **%s): %s', next_func, args, kwargs, e)
                 # Add async, best effort, to prevent infinite loop
                 # See http://erlang.org/doc/getting_started/conc_prog.html, search for "However"
-                #gevent.spawn(mailbox.put_nowait, (args, kwargs))
+                if retries < 8:
+                    gevent.spawn_later(0.01, mailbox.put_nowait, (retries+1, args, kwargs))
+                else:
+                    # TODO: maybe send it to a DEAD_LETTER actor(address, args, kwargs)?
+                    Logger('actor').exception('Dropped message %s(*%s, **%s): %s', next_func, args, kwargs, e)
             else:
                 if not next_func:
                     break
@@ -147,7 +151,7 @@ def spawn(func, *args, **kwargs):
             elif KillerJoke in args:
                 proc.kill(Killed)
             else:
-                mailbox.put_nowait((args, kwargs))
+                mailbox.put_nowait((0, args, kwargs))
         except gevent.queue.Full:
             raise UndeliveredMessage()
         return address

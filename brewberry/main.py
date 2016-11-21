@@ -9,6 +9,7 @@ from supervisor import one_for_one_supervisor, child_spec
 from topic import topic, topic_registry
 import gevent, gevent.queue
 from bottle import run
+import logging
 
 
 def start_system(io, log_appender=None):
@@ -36,6 +37,7 @@ def start_web():
 
 
 def main(io):
+    logging.basicConfig()
     start_system(io)
     start_web()
 
