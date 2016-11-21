@@ -47,14 +47,12 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
 @with_self_address
 def mash_state_machine(self, io, config, mash_temperature):
 
-    if self:
-        my_timer = spawn_link(timer, receiver=self, interval=SAMPLE_INTERVAL)
+    my_timer = spawn_link(timer, receiver=self, interval=SAMPLE_INTERVAL)
 
     def state(func):
         def state_decorator(stop=None, which_state=None):
             if stop:
-                if self:
-                    kill(my_timer)
+                kill(my_timer)
                 if io.read_heater():
                     io.set_heater(Off)
                 return

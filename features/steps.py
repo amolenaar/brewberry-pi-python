@@ -2,7 +2,7 @@ from lettuce import step, world
 
 from brewberry import fakeio, controller
 from brewberry import main
-from brewberry.actors import whereis, _registry
+from brewberry.actors import spawn, whereis, _registry
 import gevent
 from gevent.queue import Queue
 
@@ -74,12 +74,12 @@ def no_one_new_line_is_logged(step, s):
 
 @step(u'Given a mash temperature of (\d+) degrees')
 def given_a_mash_temperature_of_66_degrees(step, degrees):
-    world.controller = controller.mash_state_machine(None, fakeio, controller.Config(), mash_temperature=float(degrees))
+    world.controller = spawn(controller.mash_state_machine, io=fakeio, config=controller.Config(), mash_temperature=float(degrees))
 
 @step(u'Given controller and heater turned on')
 def given_controller_and_heater_turned_on(step):
     fakeio.set_heater(On)
-    world.controller = controller.mash_state_machine(None, fakeio, controller.Config(), mash_temperature=66)
+    world.controller = spawn(controller.mash_state_machine, io=fakeio, config=controller.Config(), mash_temperature=66)
 
 @step(u'And the heating is turned (on|off)')
 def and_the_heating_is_on_off(step, s):
@@ -88,18 +88,24 @@ def and_the_heating_is_on_off(step, s):
 @step(u'When the fluid is (\d+) degrees')
 def when_the_fluid_is_xx_degrees(step, degrees):
     fakeio.temperature = float(degrees)
-    world.controller = world.controller()()
+    world.controller()
+    gevent.sleep(0)
+
+@step(u'When I turn off the controller')
+def when_i_turn_off_the_controller(step):
+    world.controller(stop=1)
+    gevent.sleep(0)
 
 @step(u'Then the heating should be turned on')
 def then_the_heating_should_be_turned_on(step):
     assert fakeio.read_heater(), (fakeio.read_heater(), world.controller)
+    world.controller(stop=1)
 
 @step(u'Then the heating should be turned off')
 def then_the_heating_should_be_turned_off(step):
+    world.controller()
+    gevent.sleep(0)
     assert not fakeio.read_heater(), (fakeio.read_heater(), world.controller)
-
-@step(u'When I turn off the controller')
-def when_i_turn_off_the_controller(step):
     world.controller(stop=1)
 
 # Heat calculation:
