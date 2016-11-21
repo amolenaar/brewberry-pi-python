@@ -7,13 +7,17 @@
 #  - read_heater()
 #
 
+from __future__ import absolute_import
+
 from collections import namedtuple
 from datetime import datetime
-from actors import ask
+from .actors import spawn_link, ask, with_self_address
+from .timer import timer
 
 
 Sample = namedtuple('Sample', ['time', 'temperature', 'heater', 'controller', 'mash_temperature'])
 
+SAMPLE_INTERVAL = 2
 
 def _sample_as_dict(self):
     return {
@@ -26,8 +30,11 @@ def _sample_as_dict(self):
 
 Sample.as_dict = _sample_as_dict
 
+@with_self_address
+def Sampler(self, io, controller, receiver):
 
-def Sampler(io, controller, receiver):
+    spawn_link(timer, receiver=self, interval=SAMPLE_INTERVAL)
+
     def sample():
         receiver(Sample(datetime.utcfromtimestamp(io.read_time()),
                         io.read_temperature(),

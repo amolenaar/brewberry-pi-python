@@ -4,11 +4,12 @@ Control the system.
 
 from __future__ import absolute_import
 
-from .actors import spawn_link
+from .actors import spawn_link, with_self_address, kill
+from .timer import timer
 
 # Energy requires to raise the temperature of 1 litre of water by 1 degrees (C)
 JOULES_1_LITRE = 4186
-
+SAMPLE_INTERVAL = 2
 
 class Config(object):
 
@@ -27,7 +28,7 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
     def controller(tick=None, start=None, temperature=None, which_temperature=None, which_state=None):
         if temperature is not None:
             return Controller(io, config, temperature, state_machine)(start=bool(state_machine))
-        elif start:
+        elif start is not None:
             if state_machine:
                 state_machine(stop=True)
 
@@ -37,18 +38,23 @@ def Controller(io, config=Config(), set_temperature=0, state_machine=None):
             which_temperature(set_temperature)
         elif which_state:
             state_machine(which_state=which_state) if state_machine else which_state('Idle')
-        elif tick and state_machine:
+        elif tick:
             state_machine()
         return controller
 
     return controller
 
+@with_self_address
+def mash_state_machine(self, io, config, mash_temperature):
 
-def mash_state_machine(io, config, mash_temperature):
+    if self:
+        my_timer = spawn_link(timer, receiver=self, interval=SAMPLE_INTERVAL)
 
     def state(func):
         def state_decorator(stop=None, which_state=None):
             if stop:
+                if self:
+                    kill(my_timer)
                 if io.read_heater():
                     io.set_heater(Off)
                 return
