@@ -56,7 +56,6 @@ def setup_logger(topic_registry):
         queue_put = queue.put
         try:
             topic_registry(register=queue_put)
-            # TODO: need one queue per listener
             for sample in queue:
                 s = sample.as_dict()
                 yield 'id: %s\nevent: sample\ndata: %s\n\n' % (s['time'], json.dumps(s))

@@ -1,5 +1,5 @@
 
-from brewberry.actors import spawn, ask, kill, actor_info, register, whereis, registered, UndeliveredMessage
+from brewberry.actors import spawn, ask, kill, actor_info, register, whereis, registered, isaddress, ref, UndeliveredMessage
 from brewberry.actors import _registry
 import gevent.queue
 import pytest
@@ -151,5 +151,16 @@ def test_ask_with_registered_address():
     assert ask('some-name', 'which_answer') == 42
 
     kill(addr)
+
+
+def test_ref_should_behave_like_address():
+    addr = spawn(noop)
+
+    assert isaddress(addr)
+    assert isaddress(ref('addr'))
+
+    unknown_ref = ref('unknown')
+    with pytest.raises(TypeError):
+        unknown_ref()
 
 # vim:sw=4:et:ai

@@ -2,6 +2,7 @@ from lettuce import step, world
 
 from brewberry import fakeio, controller
 from brewberry import main
+from brewberry.actors import _registry
 import gevent
 from gevent.queue import Queue
 
@@ -9,6 +10,8 @@ DEFAULT_TEMP = 20.0
 
 @step(u'Given a running system')
 def a_running_system(step):
+    _registry.clear()
+
     fakeio.time = 0
     fakeio.temperature = DEFAULT_TEMP
     fakeio.heater = Off

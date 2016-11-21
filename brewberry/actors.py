@@ -15,7 +15,6 @@ Sources:
 
 Still need implementation for:
 
- * @trap_exit - do not kill, but pass on the exception to the actor
  * spawn_monitor(func) -> (addr(), monitor_ref)
  * exit(addr, reason) -> None - let the actor die with a reason (raise it)
  * provide a simple OO bridge. e.g. allow ``address.message(args)``
@@ -58,6 +57,7 @@ class UndeliveredMessage(Exception):
     mailbox is full.
     """
 
+
 def with_self_address(func):
     """
     >>> @with_self_address
@@ -66,9 +66,6 @@ def with_self_address(func):
     ...     return run_forever
 
     To ensure the actor's own address is passed in, apply this decorator.
-
-    :param func:
-    :return:
     """
     func.with_self_address = True
     return func
@@ -106,7 +103,7 @@ def spawn(func, *args, **kwargs):
                 # TODO: maybe send it to a DEAD_LETTER actor(address, args, kwargs)?
                 # Add async, best effort, to prevent infinite loop
                 # See http://erlang.org/doc/getting_started/conc_prog.html, search for "However"
-                gevent.spawn(mailbox.put_nowait, (args, kwargs))
+                #gevent.spawn(mailbox.put_nowait, (args, kwargs))
             else:
                 if not next_func:
                     break
@@ -161,17 +158,27 @@ def spawn(func, *args, **kwargs):
     return address(*args, **kwargs)
 
 
+def isaddress(obj):
+    """
+    isaddress(obj) -> bool
+
+    Check if an object is an actor address.
+    """
+    try:
+        return obj.__call__ and obj.__name__.startswith('address:<')
+    except AttributeError:
+        return False
+
+
 def spawn_link(func, *args, **kwargs):
     """
     spawn_link(func, *args, **kwargs) -> address
 
-    :param func:
-    :param args:
-    :param kwargs:
-    :return:
+    Like ``spawn()``, but also set up a link with the current actor.
     """
     address = spawn(func, Link)
     return address(*args, **kwargs)
+
 
 def spawn_trap_link(func, *args, **kwargs):
     """
@@ -182,10 +189,6 @@ def spawn_trap_link(func, *args, **kwargs):
 
       addr(trap_exit=(func, exc))
 
-    :param func:
-    :param args:
-    :param kwargs:
-    :return:
     """
     address = spawn(func, TrapLink)
     return address(*args, **kwargs)
@@ -214,7 +217,7 @@ def ask(address, query, timeout=1):
     :return: Value requested from the actor
     """
     response_queue = Queue(1)
-    (whereis(address) if isinstance(address, basestring) else address)(**{query: response_queue.put})
+    (address if isaddress(address) else whereis(address))(**{query: response_queue.put})
     return response_queue.get(timeout=timeout)
 
 
@@ -272,7 +275,7 @@ def register(name, addr):
     """
     register(name, addr) -> None
 
-    register actor address ``addr`` as ``name``. If the actor
+    Register actor address ``addr`` as ``name``. If the actor
     dies, the reference is removed.
     """
     def remove_when_done(f, e):
@@ -290,7 +293,9 @@ def register(name, addr):
 
 def whereis(name):
     """
-    whereis(actor_name): address | None
+    whereis(actor_name) -> address | None
+
+    Get back a registered address, or None, if it does not exist.
     """
     return _registry.get(name, None)
 
@@ -302,6 +307,23 @@ def registered():
     Get a map of all registered addresses.
     """
     return {name: addr for name, addr in _registry.items()}
+
+
+def ref(name):
+    """
+    ref(name) -> ref(*args, **kwargs)
+
+    Lazily resolve registered ``name`` and call it's address.
+    """
+    def addressref(*args, **kwargs):
+        addr = whereis(name)
+        if not addr:
+            raise TypeError('Can not resolve registered name %s' % name)
+        return addr(*args, **kwargs)
+
+    # Name is fixed in a way that looks similar to a regular address
+    addressref.__name__ = 'address:<%s>' % (name,)
+    return addressref
 
 
 # vim:sw=4:et:ai

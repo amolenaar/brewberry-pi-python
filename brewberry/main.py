@@ -4,7 +4,8 @@ from sampler import Sampler
 from logger import Logger, SessionLogger
 from controller import Controller
 import webui
-from actors import spawn, with_self_address, ask
+from actors import spawn, with_self_address, ask, ref
+from supervisor import one_for_one_supervisor, child_spec
 from functools import partial
 
 import gevent, gevent.queue
@@ -15,7 +16,7 @@ CONTROL_INTERVAL = 2.000
 
 
 @with_self_address
-def timer(self, receiver, kwargs=dict(), interval=CONTROL_INTERVAL):
+def timer(self, receiver, kwargs=dict(), interval=3):
     gevent.sleep(interval)
     receiver(**kwargs)
     self(receiver, kwargs, interval)
@@ -42,32 +43,32 @@ def topic(topic_registry):
 
 
 def start_system(io, log_appender=None):
+
+    sup = spawn(one_for_one_supervisor, child_specs=(
+        child_spec('controller', Controller, kwargs=dict(io=io), register=True),
+        child_spec('controller-timer', timer, kwargs=dict(receiver=ref('controller'), kwargs=dict(tick=True), interval=CONTROL_INTERVAL)),
+        child_spec('sample-topic-registry', topic_registry, register=True),
+        child_spec('sample-topic', topic, kwargs=dict(topic_registry=ref('sample-topic-registry')), register=True),
+        child_spec('sampler', Sampler, kwargs=dict(io=io, controller=ref('controller'), receiver=ref('sample-topic')), register=True),
+        child_spec('sampler-timer', timer, kwargs=dict(receiver=ref('sampler')))
+    ))
+
+    gevent.sleep(0)
+
     log = spawn(Logger, log_appender) if log_appender else SessionLogger('session.log')
-    controller = spawn(Controller, io)
-    controller_timer = spawn(timer, receiver=controller, kwargs=dict(tick=True), interval=CONTROL_INTERVAL)
-
-    sample_topic_registry = spawn(topic_registry)
-    sample_topic = spawn(topic, sample_topic_registry)
-
-    sampler = spawn(Sampler, io, controller, receiver=sample_topic)
-    sample_timer = spawn(timer, receiver=sampler, kwargs=dict(io=io, controller=controller, receiver=sample_topic))
-
-    # Put all on a one_for_all supervisor
-    sample_topic_registry(register=log)
-
-    return controller, sample_topic_registry
+    ref('sample-topic-registry')(register=log)
 
 
-def start_web(controller, sample_topic_registry):
+def start_web():
     webui.setup_static()
-    webui.setup_controls(controller)
-    webui.setup_logger(sample_topic_registry)
+    webui.setup_controls(ref('controller'))
+    webui.setup_logger(ref('sample-topic-registry'))
     run(host='0.0.0.0', port=9080, server='gevent')
 
 
 def main(io):
-    controller, sample_topic_registry = start_system(io)
-    start_web(controller, sample_topic_registry)
+    start_system(io)
+    start_web()
 
 
 # vim:sw=4:et:ai
