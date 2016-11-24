@@ -6,7 +6,8 @@ from collections import namedtuple
 from functools import partial
 
 
-class KilledByChild(Killed): pass
+class KilledByChild(Killed):
+    pass
 
 
 ChildSpecTuple = namedtuple('ChildSpecTuple', ['id', 'start_func', 'args', 'kwargs', 'register', 'restart', 'shutdown'])
@@ -36,21 +37,21 @@ def one_for_one_supervisor(child_specs, restarts=5):
             register(spec.id, child)
         return child
 
-    def deputy(child_addrs, restarts, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
+    def deputy(child_addrs, restarts_left, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
         if trap_exit and trap_exit[1]:
             func, exc = trap_exit
-            if restarts <= 1:
+            if restarts_left <= 1:
                 raise Killed
             child_spec = child_addrs[func]
             new_child_addr = _start_child_spec(child_spec)
-            return partial(deputy, {(new_child_addr if addr is func else addr): cs for addr, cs in child_addrs.items()}, restarts - 1)
+            return partial(deputy, {(new_child_addr if addr is func else addr): cs for addr, cs in child_addrs.items()}, restarts_left - 1)
         elif start_child:
             pass
         elif terminate_child:
             pass
         elif which_children:
             which_children({cs.id: addr for addr, cs in child_addrs.items()})
-        return partial(deputy, child_addrs, restarts)
+        return partial(deputy, child_addrs, restarts_left)
 
     child_addrs = {_start_child_spec(cs): cs for cs in child_specs}
 
@@ -74,20 +75,20 @@ def one_for_all_supervisor(child_specs, restarts=5):
             register(spec.id, child)
         return child
 
-    def deputy(child_addrs, restarts, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
+    def deputy(child_addrs, restarts_left, start_child=None, terminate_child=None, which_children=None, trap_exit=None):
         if trap_exit and trap_exit[1]:
-            if restarts <= 1:
+            if restarts_left <= 1:
                 raise Killed
             for addr in child_addrs.keys():
                 addr(StopChild)
-            return partial(deputy, {_start_child_spec(cs): cs for cs in child_specs}, restarts - 1)
+            return partial(deputy, {_start_child_spec(cs): cs for cs in child_specs}, restarts_left - 1)
         elif start_child:
             pass
         elif terminate_child:
             pass
         elif which_children:
             which_children({cs.id: addr for addr, cs in child_addrs.items()})
-        return partial(deputy, child_addrs, restarts)
+        return partial(deputy, child_addrs, restarts_left)
 
     child_addrs = {_start_child_spec(cs): cs for cs in child_specs}
 

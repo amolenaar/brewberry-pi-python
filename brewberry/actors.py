@@ -100,7 +100,6 @@ def spawn(func, *args, **kwargs):
             try:
                 next_func = next_func(*args, **kwargs)
             except TypeError as e:
-                # Logger('actor').warning('Could not deliver message %s(*%s, **%s): %s', next_func, args, kwargs, e)
                 # Add async, best effort, to prevent infinite loop
                 # See http://erlang.org/doc/getting_started/conc_prog.html, search for "However"
                 if retries < 8:

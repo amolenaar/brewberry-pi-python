@@ -19,7 +19,7 @@ def echo(q=None):
 
 def test_one_for_one_supervisor_should_restart_process():
     q = Queue()
-    actor = spawn(one_for_one_supervisor, child_specs=(child_spec('boom', boom, (), {'q': q.put}),))
+    actor = spawn(one_for_one_supervisor, child_specs=(child_spec('boom', start_func=boom, kwargs={'q': q.put}),))
 
     gevent.sleep(1)
     info = actor_info(actor)
@@ -31,7 +31,7 @@ def test_one_for_one_supervisor_should_restart_process():
 
 def test_one_for_one_supervisor_should_restart_registered_process():
     q = Queue()
-    actor = spawn(one_for_one_supervisor, child_specs=(child_spec('boom', boom, (), {'q': q.put}, register=True),))
+    actor = spawn(one_for_one_supervisor, child_specs=(child_spec('boom', start_func=boom, kwargs={'q': q.put}, register=True),))
 
     gevent.sleep(1)
     info = actor_info(actor)
