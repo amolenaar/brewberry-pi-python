@@ -11,6 +11,7 @@ from .timer import timer
 JOULES_1_LITRE = 4186
 SAMPLE_INTERVAL = 2
 
+
 class Config(object):
 
     def __init__(self, power = 2000, efficiency = .80, volume = 17):
