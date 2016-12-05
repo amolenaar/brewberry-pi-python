@@ -15,7 +15,7 @@ ChildSpecTuple = namedtuple('ChildSpecTuple', ['id', 'start_func', 'args', 'kwar
 
 def child_spec(id, start_func, args=(), kwargs=None, register=False, restart='transient', shutdown=1):
     assert restart in ('permanent', 'transient', 'temporary')
-    assert type(shutdown) is int or shutdown in ('brutal_kill', 'infinity')
+    assert isintance(shutdown, int) or shutdown in ('brutal_kill', 'infinity')
     return ChildSpecTuple(id, start_func, args, kwargs or {}, register, restart, shutdown)
 
 
