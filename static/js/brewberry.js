@@ -120,12 +120,12 @@ $(function () {
         controls.turnOn();
         // Check logger, re-initiate if needed.
         logger.onlineCheck();
-        turnOnButton.text('...');
+        turnOnButton.text("...");
     });
 
     turnOffButton.click(function () {
         controls.turnOff();
-        turnOnButton.text('...');
+        turnOnButton.text("...");
     });
 
     setTemperatureButton.change(function (event) {
