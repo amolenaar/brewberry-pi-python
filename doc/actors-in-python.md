@@ -6,7 +6,13 @@
 
 ## How it started
 
-I had a small temperature monitoring app using the observer pattern, and Tornado.
+I had a small temperature monitoring app using the observer pattern
+
+![old](images/old.jpg)
+
+----
+
+ ... and Tornado.
 
     class LoggerHandler(tornado.web.RequestHandler):
 
@@ -20,7 +26,6 @@ I had a small temperature monitoring app using the observer pattern, and Tornado
             self.set_header('Content-Type', 'text/event-stream')
             self.set_header('Cache-Control', 'no-cache, no-store')
             last_event_id = self.request.headers.get('Last-Event-ID')
-            print 'last event: ', last_event_id
 
             sampler.observers.add(self)
 
@@ -32,8 +37,9 @@ I had a small temperature monitoring app using the observer pattern, and Tornado
             self.flush()
 
         def on_connection_close(self):
-            print 'Connection closed', id(self)
             sampler.observers.remove(self)
+
+&darr;
 
 ----
 
@@ -45,8 +51,9 @@ That is quite some code.
 
 Then I found gevent. Gevent is 
 
+* event loop
 * build op top  and Python's Greenlet library
-* Lightweight threads.
+* lightweight threads
 
 Hmmm....
 
@@ -154,7 +161,7 @@ In Erlang, a process has a special `receive` method.
 ----
 
 
-Where to put the `receive` function? How to do state changes? Return function to call on next iteration.
+Where to put the `receive` function?
 
     def my_func(message=None):
         if message:
@@ -180,8 +187,7 @@ Where to put the `receive` function? How to do state changes? Return function to
     @with_self_address
     def pong(self, queue, i):
         queue.put('pong %d' % i)
-        if i == 0: return
-        self(queue, i - 1)
+        self(queue, i)
         return ping
 
 
@@ -192,8 +198,33 @@ Where to put the `receive` function? How to do state changes? Return function to
 In functional languages, pattern matching comes naturally.
 Python does not do pattern matching. Use named method parameters where possible.
 
+    def timer(receiver, interval):
+        pass # implementation comes here
+
+    spawn(timer, receiver=self, interval=SAMPLE_INTERVAL)
+
+
+---
+
+## Everything is a process
+
+![new](images/new.jpg)
+
+----
+
+Split the controller. Enable and disable the state machine. 
+
+![controller](images/controller.jpg)
+
+----
+
+What if the timer crashes?
+
+Actor need to be linked, share the bad times.
+
     spawn_link(timer, receiver=self, interval=SAMPLE_INTERVAL)
 
+If my current active actor or the timer actor terminates with an exception, terminate the other.
 
 ---
 
@@ -222,14 +253,14 @@ Supervisors are smart: they link with their children, but trap their exit state.
 
         return partial(deputy, child_addrs, restarts)
 
+----
+
+![alt text](images/supervisor.jpg)
 ---
 
+Topic registration (for temperature samples).
 
-Split the controller. Enable and disable the state machine. 
-
----
-
-Need topics with registration for the web interface -> 2 actors. Partials for the win.
+Partials for the win.
 
     def topic_registry(receivers=(), register=None, deregister=None, which_receivers=None):
         if register:
@@ -246,7 +277,5 @@ Need topics with registration for the web interface -> 2 actors. Partials for th
 
 * Actor thinking is more different from OO than I expected
 * It's easier when you think in functions
-* 
-
-
+* I got to know why Erlang works the way it works
 
