@@ -1,4 +1,4 @@
-Brewberry-&pi; [![Build Status](https://travis-ci.org/amolenaar/brewberry-pi.svg?branch=master)](https://travis-ci.org/amolenaar/brewberry-pi) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b536d80a821849d8a5d504e18d0bf3ef)](https://www.codacy.com/app/gaphor/brewberry-pi)
+Brewberry-&pi; [![Build Status](https://travis-ci.org/amolenaar/brewberry-pi.svg?branch=master)](https://travis-ci.org/amolenaar/brewberry-pi) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b536d80a821849d8a5d504e18d0bf3ef)](https://www.codacy.com/app/gaphor/brewberry-pi) [![BCH compliance](https://bettercodehub.com/edge/badge/amolenaar/brewberry-pi)](https://bettercodehub.com)
 ===========
 
 Raspberry Pi based homebrew automation.
